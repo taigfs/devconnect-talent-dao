@@ -1,0 +1,94 @@
+import { useEffect, useState } from 'react';
+import { CheckCircle2, Trophy } from 'lucide-react';
+
+interface CompletionAnimationProps {
+  reward: number;
+  onComplete: () => void;
+}
+
+const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setStep(1), 500),
+      setTimeout(() => setStep(2), 1500),
+      setTimeout(() => setStep(3), 2500),
+      setTimeout(() => onComplete(), 5000)
+    ];
+
+    return () => timers.forEach(clearTimeout);
+  }, [onComplete]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+      {/* Confetti particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 50 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-primary rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              opacity: Math.random() * 0.7 + 0.3
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 text-center space-y-8 max-w-lg px-4">
+        {/* Checkmark */}
+        {step >= 1 && (
+          <div className="animate-scale-in">
+            <CheckCircle2 className="w-32 h-32 text-primary mx-auto glow-effect-strong" />
+          </div>
+        )}
+
+        {/* Payment released text */}
+        {step >= 1 && (
+          <div className="animate-fade-in">
+            <h2 className="text-4xl font-bold text-primary text-glow mb-4">
+              Payment Released!
+            </h2>
+          </div>
+        )}
+
+        {/* Split breakdown */}
+        {step >= 2 && (
+          <div className="animate-fade-in space-y-3">
+            <div className="flex items-center justify-between p-4 bg-card border border-primary/30 rounded-lg glow-effect">
+              <span className="text-lg">Worker (80%)</span>
+              <span className="text-2xl font-bold text-primary">
+                {reward * 0.8} USDC
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+              <span className="text-lg">DAO Treasury (20%)</span>
+              <span className="text-xl font-bold text-muted-foreground">
+                {reward * 0.2} USDC
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* NFT badge */}
+        {step >= 3 && (
+          <div className="animate-scale-in">
+            <div className="inline-flex flex-col items-center p-6 bg-card border-2 border-primary rounded-lg glow-effect-strong">
+              <Trophy className="w-16 h-16 text-primary mb-3" />
+              <p className="text-xl font-bold text-primary">Reputation NFT Minted!</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Your achievement has been recorded on-chain
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CompletionAnimation;
