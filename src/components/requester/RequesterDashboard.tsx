@@ -17,9 +17,16 @@ const RequesterDashboard = () => {
 
   const statusColors = {
     OPEN: 'bg-primary text-primary-foreground',
-    IN_PROGRESS: 'bg-secondary text-secondary-foreground',
-    SUBMITTED: 'bg-muted text-muted-foreground',
+    IN_PROGRESS: 'bg-yellow-600 text-white',
+    SUBMITTED: 'bg-blue-600 text-white',
     COMPLETED: 'bg-primary text-primary-foreground'
+  };
+
+  const statusLabels = {
+    OPEN: 'Open',
+    IN_PROGRESS: 'In Progress',
+    SUBMITTED: 'Submitted',
+    COMPLETED: 'Completed'
   };
 
   return (
@@ -69,7 +76,7 @@ const RequesterDashboard = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <Badge className={statusColors[job.status]}>
-                        {job.status.replace('_', ' ')}
+                        {statusLabels[job.status]}
                       </Badge>
                       {job.status === 'SUBMITTED' && (
                         <span className="text-sm text-secondary font-semibold">

@@ -26,13 +26,8 @@ const AppContent = () => {
   const handleWalletConnected = (role: 'worker' | 'requester') => {
     const mockWallet = `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`;
     connectWallet(role, mockWallet);
+    completeKYC({}); // Auto-complete KYC
     setShowConnectModal(false);
-    setShowKYCModal(true);
-  };
-
-  const handleKYCComplete = (data: any) => {
-    completeKYC(data);
-    setShowKYCModal(false);
   };
 
   const completedJob = jobs.find(j => j.status === 'COMPLETED');
@@ -46,16 +41,6 @@ const AppContent = () => {
           onConnect={handleWalletConnected}
         />
       </>
-    );
-  }
-
-  if (!user.kycCompleted) {
-    return (
-      <KYCModal
-        open={showKYCModal}
-        role={user.role}
-        onComplete={handleKYCComplete}
-      />
     );
   }
 

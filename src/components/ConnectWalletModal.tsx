@@ -40,7 +40,7 @@ const ConnectWalletModal = ({ open, onConnect }: ConnectWalletModalProps) => {
               <div className="w-20 h-20 bg-primary/10 border-2 border-primary rounded-lg flex items-center justify-center">
                 <Briefcase className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="text-xl font-bold">WORK AS TALENT</h3>
+              <h3 className="text-xl font-bold">Work as Talent</h3>
               <p className="text-sm text-muted-foreground">
                 Find verified gigs, submit work, earn crypto
               </p>
@@ -70,7 +70,7 @@ const ConnectWalletModal = ({ open, onConnect }: ConnectWalletModalProps) => {
               <div className="w-20 h-20 bg-primary/10 border-2 border-primary rounded-lg flex items-center justify-center">
                 <Building2 className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="text-xl font-bold">HIRE TALENT</h3>
+              <h3 className="text-xl font-bold">Hire Talent</h3>
               <p className="text-sm text-muted-foreground">
                 Post jobs, review work, pay with escrow
               </p>
