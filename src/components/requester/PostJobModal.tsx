@@ -15,7 +15,7 @@ interface PostJobModalProps {
 }
 
 const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
-  const { addJob, user } = useApp();
+  const { addJob, user, balance } = useApp();
   const [posting, setPosting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,6 +25,11 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
     category: '' as JobCategory | '',
     deadline: ''
   });
+
+  const rewardAmount = parseInt(formData.reward) || 0;
+  const insufficientBalance = rewardAmount > balance;
+  const isFormValid = formData.title && formData.description && formData.reward && 
+                      formData.category && formData.deadline && !insufficientBalance;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,8 +122,18 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
                 value={formData.reward}
                 onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
                 placeholder="500"
-                className="bg-muted border-border"
+                className={`bg-muted border-border ${insufficientBalance ? 'border-destructive' : ''}`}
               />
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-xs text-muted-foreground">
+                  Available: {balance.toLocaleString()} USDC
+                </span>
+                {insufficientBalance && (
+                  <span className="text-xs text-destructive">
+                    Insufficient balance
+                  </span>
+                )}
+              </div>
             </div>
 
             <div>
@@ -155,8 +170,8 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
           <div className="pt-4 space-y-2">
             <Button
               type="submit"
-              disabled={posting}
-              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold uppercase text-lg py-6 glow-effect"
+              disabled={posting || !isFormValid}
+              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold uppercase text-lg py-6 glow-effect disabled:opacity-50"
             >
               {posting ? 'Depositing to Escrow...' : 'Deposit & Post Job'}
             </Button>
