@@ -36,19 +36,13 @@ const RequesterDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-2xl font-bold">My Posted Jobs</h1>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Wallet:</span>
-                <span className="font-mono text-primary">{user?.wallet}</span>
-              </div>
-              <Button
-                onClick={() => setShowPostJob(true)}
-                className="bg-primary hover:bg-secondary text-primary-foreground font-bold"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Post New Job
-              </Button>
-            </div>
+            <Button
+              onClick={() => setShowPostJob(true)}
+              className="bg-primary hover:bg-secondary text-primary-foreground font-bold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Post New Job
+            </Button>
           </div>
         </div>
       </div>

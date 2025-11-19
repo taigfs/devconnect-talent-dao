@@ -30,10 +30,20 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'OPEN': return 'bg-primary text-primary-foreground';
-      case 'IN_PROGRESS': return 'bg-yellow-500 text-white';
-      case 'SUBMITTED': return 'bg-blue-500 text-white';
+      case 'IN_PROGRESS': return 'bg-yellow-600 text-white';
+      case 'SUBMITTED': return 'bg-blue-600 text-white';
       case 'COMPLETED': return 'bg-primary text-primary-foreground';
       default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'OPEN': return 'Open';
+      case 'IN_PROGRESS': return 'In Progress';
+      case 'SUBMITTED': return 'Submitted';
+      case 'COMPLETED': return 'Completed';
+      default: return status;
     }
   };
 
@@ -60,11 +70,7 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
             <div className="flex items-center gap-3 mb-3">
               <h3 className="font-bold text-lg flex-1">{job.title}</h3>
               <Badge className={getStatusColor(job.status)}>
-                {job.status === 'OPEN' && '🟢 '}
-                {job.status === 'IN_PROGRESS' && '🟡 '}
-                {job.status === 'SUBMITTED' && '🔵 '}
-                {job.status === 'COMPLETED' && '✅ '}
-                {job.status.replace('_', ' ')}
+                {getStatusLabel(job.status)}
               </Badge>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
