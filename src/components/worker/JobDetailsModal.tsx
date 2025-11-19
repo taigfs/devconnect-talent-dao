@@ -120,7 +120,7 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
               />
               <Button
                 onClick={handleSubmit}
-                className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold uppercase"
+                className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold"
               >
                 Submit Work
               </Button>
@@ -151,7 +151,7 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
           {canApply && (
             <Button
               onClick={handleApply}
-              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold uppercase text-lg py-6 glow-effect"
+              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold text-lg py-6 glow-effect"
             >
               Apply for Job
             </Button>

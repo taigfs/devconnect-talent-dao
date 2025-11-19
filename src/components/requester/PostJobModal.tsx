@@ -171,7 +171,7 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
             <Button
               type="submit"
               disabled={posting || !isFormValid}
-              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold uppercase text-lg py-6 glow-effect disabled:opacity-50"
+              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold text-lg py-6 glow-effect disabled:opacity-50"
             >
               {posting ? 'Depositing to Escrow...' : 'Deposit & Post Job'}
             </Button>

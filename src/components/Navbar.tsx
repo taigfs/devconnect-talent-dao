@@ -24,25 +24,6 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
 
           {/* Navigation */}
           <div className="flex items-center gap-4">
-            {user?.role === 'worker' && (
-              <Button
-                variant={currentView === 'board' ? 'default' : 'ghost'}
-                onClick={() => onViewChange('board')}
-                className={currentView === 'board' ? 'bg-primary text-primary-foreground' : ''}
-              >
-                Job Board
-              </Button>
-            )}
-            {user?.role === 'requester' && (
-              <Button
-                variant={currentView === 'dashboard' ? 'default' : 'ghost'}
-                onClick={() => onViewChange('dashboard')}
-                className={currentView === 'dashboard' ? 'bg-primary text-primary-foreground' : ''}
-              >
-                My Jobs
-              </Button>
-            )}
-            
             {/* Balance for requesters */}
             {user?.role === 'requester' && (
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded border border-primary/30">
