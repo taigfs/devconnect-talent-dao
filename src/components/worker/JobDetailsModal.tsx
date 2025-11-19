@@ -49,8 +49,16 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
 
         <div className="space-y-6">
           {/* Status badge */}
-          <Badge className="bg-primary text-primary-foreground">
-            {job.status.replace('_', ' ')}
+          <Badge className={
+            job.status === 'OPEN' ? 'bg-primary text-primary-foreground' :
+            job.status === 'IN_PROGRESS' ? 'bg-yellow-600 text-white' :
+            job.status === 'SUBMITTED' ? 'bg-blue-600 text-white' :
+            'bg-primary text-primary-foreground'
+          }>
+            {job.status === 'OPEN' ? 'Open' :
+             job.status === 'IN_PROGRESS' ? 'In Progress' :
+             job.status === 'SUBMITTED' ? 'Submitted' :
+             'Completed'}
           </Badge>
 
           {/* Job meta */}

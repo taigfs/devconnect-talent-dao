@@ -21,18 +21,19 @@ const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) =
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0b]/98 backdrop-blur-md">
       {/* Confetti particles */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 50 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-2 h-2 bg-primary rounded-full animate-pulse"
+            className="absolute w-2 h-2 rounded-full animate-pulse"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 2}s`,
-              opacity: Math.random() * 0.7 + 0.3
+              opacity: Math.random() * 0.5 + 0.3,
+              backgroundColor: Math.random() > 0.5 ? '#00D395' : '#00FF88'
             }}
           />
         ))}

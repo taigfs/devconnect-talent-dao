@@ -4,10 +4,14 @@ import JobCard from './JobCard';
 import JobDetailsModal from './JobDetailsModal';
 
 const JobBoard = () => {
-  const { jobs } = useApp();
+  const { jobs, user } = useApp();
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
-  const availableJobs = jobs.filter(job => job.status === 'OPEN' || job.status === 'IN_PROGRESS');
+  const availableJobs = jobs.filter(job => 
+    job.status === 'OPEN' || 
+    job.status === 'IN_PROGRESS' || 
+    (job.status === 'SUBMITTED' && job.applicantWallet === user?.wallet)
+  );
 
   const selectedJob = jobs.find(j => j.id === selectedJobId);
 
