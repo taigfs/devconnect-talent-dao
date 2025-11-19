@@ -11,7 +11,7 @@ const LandingPage = ({ onConnect }: LandingPageProps) => {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
         <div className="flex items-center gap-3 mb-6">
           <img 
-            src="/logo.png" 
+            src="/Logo.png" 
             alt="TalentDAO Logo" 
             className="w-12 h-12 md:w-16 md:h-16 object-contain"
           />
