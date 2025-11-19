@@ -12,21 +12,18 @@ import { Toaster } from 'sonner';
 
 const AppContent = () => {
   const { user, connectWallet, completeKYC, showCompletionAnimation, setShowCompletionAnimation, jobs } = useApp();
-  const [showConnectModal, setShowConnectModal] = useState(false);
-  const [showKYCModal, setShowKYCModal] = useState(false);
   const [currentView, setCurrentView] = useState<'board' | 'dashboard'>('board');
+  const [showConnectModal, setShowConnectModal] = useState(false);
   
-  // Check for demo mode in URL
   const isDemoMode = new URLSearchParams(window.location.search).get('demo') === 'true';
 
   const handleConnect = () => {
     setShowConnectModal(true);
   };
 
-  const handleWalletConnected = (role: 'worker' | 'requester') => {
-    const mockWallet = `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`;
-    connectWallet(role, mockWallet);
-    completeKYC({}); // Auto-complete KYC
+  const handleWalletConnected = (role: 'worker' | 'requester', walletAddress: string) => {
+    connectWallet(role, walletAddress);
+    completeKYC({});
     setShowConnectModal(false);
   };
 
@@ -38,6 +35,7 @@ const AppContent = () => {
         <LandingPage onConnect={handleConnect} />
         <ConnectWalletModal
           open={showConnectModal}
+          onOpenChange={setShowConnectModal}
           onConnect={handleWalletConnected}
         />
       </>

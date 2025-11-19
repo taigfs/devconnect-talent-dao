@@ -22,7 +22,6 @@ const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0b]/98 backdrop-blur-md">
-      {/* Confetti particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 50 }).map((_, i) => (
           <div
@@ -39,16 +38,12 @@ const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) =
         ))}
       </div>
 
-      {/* Main content */}
       <div className="relative z-10 text-center space-y-8 max-w-lg px-4">
-        {/* Checkmark */}
         {step >= 1 && (
           <div className="animate-scale-in">
             <CheckCircle2 className="w-32 h-32 text-primary mx-auto glow-effect-strong" />
           </div>
         )}
-
-        {/* Payment released text */}
         {step >= 1 && (
           <div className="animate-fade-in">
             <h2 className="text-4xl font-bold text-primary text-glow mb-4">
@@ -56,8 +51,6 @@ const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) =
             </h2>
           </div>
         )}
-
-        {/* Split breakdown */}
         {step >= 2 && (
           <div className="animate-fade-in space-y-3">
             <div className="flex items-center justify-between p-4 bg-card border border-primary/30 rounded-lg glow-effect">
@@ -74,9 +67,7 @@ const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) =
             </div>
           </div>
         )}
-
-        {/* NFT badge */}
-        {step >= 3 && (
+               {step >= 3 && (
           <div className="animate-scale-in">
             <div className="inline-flex flex-col items-center p-6 bg-card border-2 border-primary rounded-lg glow-effect-strong">
               <Trophy className="w-16 h-16 text-primary mb-3" />
