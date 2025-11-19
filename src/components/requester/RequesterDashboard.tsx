@@ -106,14 +106,31 @@ const RequesterDashboard = () => {
                       </Button>
                     )}
                     {job.status === 'IN_PROGRESS' && (
-                      <span className="text-sm text-muted-foreground">
-                        Worker in progress...
-                      </span>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSelectedJobId(job.id)}
+                        className="border-primary/50"
+                      >
+                        View Details
+                      </Button>
+                    )}
+                    {job.status === 'OPEN' && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => setSelectedJobId(job.id)}
+                        className="text-muted-foreground"
+                      >
+                        Manage
+                      </Button>
                     )}
                     {job.status === 'COMPLETED' && (
-                      <span className="text-sm text-primary font-semibold">
-                        ✓ Completed
-                      </span>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSelectedJobId(job.id)}
+                        className="border-primary/50"
+                      >
+                        <span className="text-primary">✓ View</span>
+                      </Button>
                     )}
                   </div>
                 </div>

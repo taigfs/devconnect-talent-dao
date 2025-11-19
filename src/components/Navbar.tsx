@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
-import { Sparkles, LogOut } from 'lucide-react';
+import { Sparkles, LogOut, DollarSign } from 'lucide-react';
 
 interface NavbarProps {
   currentView: 'board' | 'dashboard';
@@ -8,7 +8,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
-  const { user, disconnect } = useApp();
+  const { user, disconnect, balance } = useApp();
 
   return (
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-20">
@@ -39,10 +39,20 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
                 onClick={() => onViewChange('dashboard')}
                 className={currentView === 'dashboard' ? 'bg-primary text-primary-foreground' : ''}
               >
-                Dashboard
+                My Jobs
               </Button>
             )}
             
+            {/* Balance for requesters */}
+            {user?.role === 'requester' && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded border border-primary/30">
+                <DollarSign className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold text-primary">
+                  {balance.toLocaleString()} USDC
+                </span>
+              </div>
+            )}
+
             {/* Wallet info */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-muted rounded border border-border">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -52,10 +62,10 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
             </div>
 
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={disconnect}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-destructive hover:border-destructive"
             >
               <LogOut className="w-4 h-4" />
             </Button>

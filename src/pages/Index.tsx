@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppProvider, useApp } from '@/contexts/AppContext';
+import { Button } from '@/components/ui/button';
 import LandingPage from '@/components/LandingPage';
 import ConnectWalletModal from '@/components/ConnectWalletModal';
 import KYCModal from '@/components/KYCModal';
@@ -14,6 +15,9 @@ const AppContent = () => {
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [currentView, setCurrentView] = useState<'board' | 'dashboard'>('board');
+  
+  // Check for demo mode in URL
+  const isDemoMode = new URLSearchParams(window.location.search).get('demo') === 'true';
 
   const handleConnect = () => {
     setShowConnectModal(true);
@@ -55,6 +59,16 @@ const AppContent = () => {
     );
   }
 
+  const handleDemoSwitch = () => {
+    const DEMO_WORKER = '0xAAA...111';
+    const DEMO_REQUESTER = '0xBBB...222';
+    const targetWallet = user?.role === 'worker' ? DEMO_REQUESTER : DEMO_WORKER;
+    const targetRole = user?.role === 'worker' ? 'requester' : 'worker';
+    
+    // Switch to the other demo account
+    connectWallet(targetRole, targetWallet);
+  };
+
   return (
     <>
       <Navbar currentView={currentView} onViewChange={setCurrentView} />
@@ -66,6 +80,20 @@ const AppContent = () => {
           reward={completedJob.reward}
           onComplete={() => setShowCompletionAnimation(false)}
         />
+      )}
+
+      {/* Demo mode switcher */}
+      {isDemoMode && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button
+            onClick={handleDemoSwitch}
+            variant="outline"
+            size="sm"
+            className="bg-card border-primary/30 text-xs"
+          >
+            Switch to {user?.role === 'worker' ? 'Requester' : 'Worker'}
+          </Button>
+        </div>
       )}
     </>
   );
