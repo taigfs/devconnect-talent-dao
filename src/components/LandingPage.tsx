@@ -7,12 +7,8 @@ interface LandingPageProps {
 const LandingPage = ({ onConnect }: LandingPageProps) => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Subtle grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
-      
-      {/* Main content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
-        {/* Logo */}
         <div className="flex items-center gap-3 mb-6">
           <img 
             src="/logo.png" 
@@ -23,18 +19,12 @@ const LandingPage = ({ onConnect }: LandingPageProps) => {
             TalentDAO
           </h1>
         </div>
-
-        {/* Tagline */}
         <h2 className="text-2xl md:text-3xl font-semibold text-center mb-4 text-glow">
           Decentralized Talent. Verified Work. Social Impact.
         </h2>
-
-        {/* Subtext */}
         <p className="text-muted-foreground text-lg text-center mb-12 max-w-2xl">
           80% to talent. 20% to social programs. 100% transparent.
         </p>
-
-        {/* CTA Button */}
         <Button
           onClick={onConnect}
           size="lg"
@@ -43,8 +33,6 @@ const LandingPage = ({ onConnect }: LandingPageProps) => {
           Connect Wallet
         </Button>
       </div>
-
-      {/* Stats bar at bottom */}
       <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-wrap justify-center gap-8 text-center">

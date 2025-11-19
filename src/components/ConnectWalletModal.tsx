@@ -45,8 +45,6 @@ const ConnectWalletModal = ({ open, onOpenChange, onConnect }: ConnectWalletModa
             Choose how you want to participate in the TalentDAO marketplace
           </DialogDescription>
         </DialogHeader>
-
-        {/* Modo desenvolvimento */}
         {!isWebView && (
           <div className="flex items-start gap-2 p-3 mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm text-yellow-300">
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -64,7 +62,6 @@ const ConnectWalletModal = ({ open, onOpenChange, onConnect }: ConnectWalletModa
         )}
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Worker Card */}
           <div className="border border-border bg-muted/20 rounded-lg p-6 hover:border-primary/50 transition-colors">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="w-20 h-20 bg-primary/10 border-2 border-primary rounded-lg flex items-center justify-center">
@@ -85,8 +82,6 @@ const ConnectWalletModal = ({ open, onOpenChange, onConnect }: ConnectWalletModa
               </div>
             </div>
           </div>
-
-          {/* Requester Card */}
           <div className="border border-border bg-muted/20 rounded-lg p-6 hover:border-primary/50 transition-colors">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="w-20 h-20 bg-primary/10 border-2 border-primary rounded-lg flex items-center justify-center">
