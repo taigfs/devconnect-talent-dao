@@ -41,7 +41,7 @@ interface AppContextType {
   applyForJob: (jobId: number) => void;
   submitWork: (jobId: number, link: string) => void;
   approveWork: (jobId: number) => void;
-  disconnect: () => void;
+  logout: () => void;
   showCompletionAnimation: boolean;
   setShowCompletionAnimation: (show: boolean) => void;
 }
@@ -273,7 +273,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setShowCompletionAnimation(true);
   };
 
-  const disconnect = () => {
+  const logout = () => {
     setState(prev => ({
       ...prev,
       currentUser: null
@@ -291,7 +291,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       applyForJob,
       submitWork,
       approveWork,
-      disconnect,
+      logout,
       showCompletionAnimation,
       setShowCompletionAnimation
     }}>

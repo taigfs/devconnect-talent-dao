@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
 
 interface LandingPageProps {
   onConnect: () => void;
@@ -15,9 +14,11 @@ const LandingPage = ({ onConnect }: LandingPageProps) => {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-primary/20 border-2 border-primary flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary" />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="TalentDAO Logo" 
+            className="w-12 h-12 md:w-16 md:h-16 object-contain"
+          />
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
             TalentDAO
           </h1>

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
-import { Sparkles, LogOut, DollarSign } from 'lucide-react';
+import { useAppWallet } from '@/hooks/useAppWallet';
+import { LogOut, DollarSign } from 'lucide-react';
 
 interface NavbarProps {
   currentView: 'board' | 'dashboard';
@@ -8,7 +9,8 @@ interface NavbarProps {
 }
 
 const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
-  const { user, disconnect, balance } = useApp();
+  const { user, logout, balance } = useApp();
+  const { disconnect } = useAppWallet();
 
   return (
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-20">
@@ -16,9 +18,11 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/20 border-2 border-primary flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="TalentDAO Logo" 
+              className="w-8 h-8 object-contain"
+            />
             <span className="text-xl font-bold">TalentDAO</span>
           </div>
 
@@ -35,18 +39,24 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
             )}
 
             {/* Wallet info */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-muted rounded border border-border">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-mono text-primary">
-                {user?.wallet?.slice(0, 6)}...{user?.wallet?.slice(-4)}
-              </span>
+            <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded border border-border">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-sm font-mono text-primary">
+                  {user?.wallet?.slice(0, 6)}...{user?.wallet?.slice(-4)}
+                </span>
+              </div>
             </div>
 
             <Button
               variant="outline"
               size="sm"
-              onClick={disconnect}
+              onClick={() => {
+                disconnect();
+                logout();
+              }}
               className="text-muted-foreground hover:text-destructive hover:border-destructive"
+              title="Logout / Switch Account"
             >
               <LogOut className="w-4 h-4" />
             </Button>
