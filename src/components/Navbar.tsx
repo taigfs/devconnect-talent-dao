@@ -8,9 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Copy, Check, Receipt } from 'lucide-react';
+import { LogOut, Copy, Check, Receipt, Trophy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 
 // Navbar não precisa mais de props, apenas renderiza com base no contexto
@@ -94,6 +95,12 @@ const Navbar = () => {
                   >
                     <Receipt className="w-4 h-4 mr-2" />
                     Transaction History
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-nfts" className="cursor-pointer">
+                      <Trophy className="w-4 h-4 mr-2" />
+                      My Work Credentials
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
