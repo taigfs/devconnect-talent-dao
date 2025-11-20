@@ -1,6 +1,18 @@
 # MintWork - Web3 Gig Marketplace
 
-Decentralized talent marketplace. 80% to workers, 20% to social programs. 100% transparent.
+_Decentralized talent marketplace. 80% to workers, 20% to social programs. 100% transparent._
+
+[![Status](https://img.shields.io/badge/status-hackathon-orange)](#roadmap)
+[![React](https://img.shields.io/badge/react-19.1.0-61dafb?logo=react&logoColor=white)](#stack)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
+
+## 🔗 Quick Links
+- [Getting Started](#getting-started)
+- [Technologies](#technologies)
+- [Features](#features)
+- [Deployment](#deployment)
+- [Environment Variables](#environment-variables)
+
 
 ## 🚀 Getting Started
 

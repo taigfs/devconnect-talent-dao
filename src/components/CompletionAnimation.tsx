@@ -56,13 +56,13 @@ const CompletionAnimation = ({ reward, onComplete }: CompletionAnimationProps) =
             <div className="flex items-center justify-between p-4 bg-card border border-primary/30 rounded-lg glow-effect">
               <span className="text-lg">Worker (80%)</span>
               <span className="text-2xl font-bold text-primary">
-                {(reward * 0.8).toFixed(4)} WETH
+                {(reward * 0.8).toFixed(8)} WETH
               </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
               <span className="text-lg">Social Programs (20%)</span>
               <span className="text-xl font-bold text-muted-foreground">
-                {(reward * 0.2).toFixed(4)} WETH
+                {(reward * 0.2).toFixed(8)} WETH
               </span>
             </div>
           </div>

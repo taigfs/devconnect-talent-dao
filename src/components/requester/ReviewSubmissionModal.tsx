@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Job } from '@/contexts/AppContext';
 import { useApp } from '@/contexts/AppContext';
-import { ExternalLink, DollarSign, Clock, User, FileText, Tag, Layers } from 'lucide-react';
-import { useState } from 'react';
+import { ExternalLink, DollarSign, Clock, User, FileText, Tag, Layers, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { getJobDetails, OnChainJobFull } from '@/lib/web3/workMarketplace';
 
 interface ReviewSubmissionModalProps {
   job: Job;
@@ -15,6 +16,27 @@ interface ReviewSubmissionModalProps {
 const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProps) => {
   const { approveWork, user } = useApp();
   const [approving, setApproving] = useState(false);
+  const [onChainJob, setOnChainJob] = useState<OnChainJobFull | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  // Fetch full job details from blockchain when modal opens
+  useEffect(() => {
+    if (open && job.id !== undefined) {
+      const fetchJobDetails = async () => {
+        setLoadingDetails(true);
+        try {
+          const details = await getJobDetails(job.id);
+          setOnChainJob(details);
+        } catch (error) {
+          console.error('Failed to fetch job details:', error);
+          // Fallback to local job data
+        } finally {
+          setLoadingDetails(false);
+        }
+      };
+      fetchJobDetails();
+    }
+  }, [open, job.id]);
 
   const handleApprove = async () => {
     setApproving(true);
@@ -109,10 +131,21 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
               <h4 className="font-semibold">Description</h4>
+              {loadingDetails && (
+                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+              )}
             </div>
-            <p className="text-muted-foreground leading-relaxed pl-6">
-              {job.description}
-            </p>
+            {loadingDetails ? (
+              <div className="pl-6 space-y-2">
+                <div className="h-4 bg-muted/50 rounded animate-pulse w-full" />
+                <div className="h-4 bg-muted/50 rounded animate-pulse w-5/6" />
+                <div className="h-4 bg-muted/50 rounded animate-pulse w-4/6" />
+              </div>
+            ) : (
+              <p className="text-muted-foreground leading-relaxed pl-6">
+                {onChainJob?.description || job.description}
+              </p>
+            )}
           </div>
 
           {/* Tags */}
@@ -190,29 +223,30 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                 <div className="space-y-3 bg-background/50 p-4 rounded-lg">
                   <div>
                     <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Submission Link</span>
-                    <a
-                      href={job.submissionLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2 break-all mt-1.5 font-medium"
-                    >
-                      {job.submissionLink}
-                      <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                    </a>
+                    {loadingDetails ? (
+                      <div className="h-5 bg-muted/50 rounded animate-pulse w-full mt-1.5" />
+                    ) : (
+                      <a
+                        href={onChainJob?.deliveryUrl || job.submissionLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2 break-all mt-1.5 font-medium"
+                      >
+                        {onChainJob?.deliveryUrl || job.submissionLink}
+                        <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                      </a>
+                    )}
                   </div>
                   
                   <div className="h-px bg-border" />
                   
                   <div>
                     <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Worker Address</span>
-                    <p className="font-mono text-xs mt-1.5 break-all">{job.applicantWallet}</p>
-                  </div>
-                  
-                  <div className="h-px bg-border" />
-                  
-                  <div>
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Submitted</span>
-                    <p className="text-sm mt-1.5 font-medium">{getTimeAgo(job.submittedAt)}</p>
+                    {loadingDetails ? (
+                      <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4 mt-1.5" />
+                    ) : (
+                      <p className="font-mono text-xs mt-1.5 break-all">{onChainJob?.worker || job.applicantWallet}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -228,7 +262,7 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                       <span className="text-sm font-medium">Worker Payment</span>
                       <p className="text-xs text-muted-foreground">80% of total reward</p>
                     </div>
-                    <span className="font-bold text-lg text-primary">{(job.reward * 0.8).toFixed(4)} WETH</span>
+                    <span className="font-bold text-lg text-primary">{(job.reward * 0.8).toFixed(8)} WETH</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
@@ -236,14 +270,14 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                       <span className="text-sm font-medium text-muted-foreground">Social Programs</span>
                       <p className="text-xs text-muted-foreground">20% platform fee</p>
                     </div>
-                    <span className="font-bold text-muted-foreground">{(job.reward * 0.2).toFixed(4)} WETH</span>
+                    <span className="font-bold text-muted-foreground">{(job.reward * 0.2).toFixed(8)} WETH</span>
                   </div>
                   
                   <div className="h-px bg-border my-2" />
                   
                   <div className="flex justify-between items-center pt-2">
                     <span className="font-bold text-base">Total Escrowed</span>
-                    <span className="font-bold text-xl text-primary">{job.reward} WETH</span>
+                    <span className="font-bold text-xl text-primary">{job.reward.toFixed(8)} WETH</span>
                   </div>
                 </div>
               </div>
@@ -262,14 +296,13 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    <span>✓ Approve & Release Payment</span>
-                    <DollarSign className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span>Approve & Release Payment</span>
                   </span>
                 )}
               </Button>
               
               <p className="text-xs text-center text-muted-foreground mt-3">
-                This will release {(job.reward * 0.8).toFixed(4)} WETH to the worker and mint a reputation NFT
+                This will release {(job.reward * 0.8).toFixed(8)} WETH to the worker and mint a reputation NFT
               </p>
             </>
           )}
@@ -285,7 +318,7 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
               </p>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/50 rounded-lg border border-primary/20">
                 <span className="text-xs text-muted-foreground">Worker received:</span>
-                <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(4)} WETH</span>
+                <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(8)} WETH</span>
               </div>
             </div>
           )}
