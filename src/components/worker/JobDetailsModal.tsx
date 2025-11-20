@@ -5,9 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Job } from '@/contexts/AppContext';
 import { useApp } from '@/contexts/AppContext';
-import { DollarSign, Clock, Building2, FileText, Tag, Layers } from 'lucide-react';
-import { useState } from 'react';
+import { DollarSign, Clock, Building2, FileText, Tag, Layers, ExternalLink, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { getJobDetails, OnChainJobFull } from '@/lib/web3/workMarketplace';
+import { formatEther } from 'viem';
 
 interface JobDetailsModalProps {
   job: Job;
@@ -20,6 +22,27 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
   const [submissionLink, setSubmissionLink] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [onChainJob, setOnChainJob] = useState<OnChainJobFull | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  // Fetch full job details from blockchain when modal opens
+  useEffect(() => {
+    if (open && job.id !== undefined) {
+      const fetchJobDetails = async () => {
+        setLoadingDetails(true);
+        try {
+          const details = await getJobDetails(job.id);
+          setOnChainJob(details);
+        } catch (error) {
+          console.error('Failed to fetch job details:', error);
+          // Fallback to local job data
+        } finally {
+          setLoadingDetails(false);
+        }
+      };
+      fetchJobDetails();
+    }
+  }, [open, job.id]);
 
   const handleApply = async () => {
     setIsApplying(true);
@@ -118,10 +141,21 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
               <h4 className="font-semibold">Description</h4>
+              {loadingDetails && (
+                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+              )}
             </div>
-            <p className="text-muted-foreground leading-relaxed pl-6">
-              {job.description}
-            </p>
+            {loadingDetails ? (
+              <div className="pl-6 space-y-2">
+                <div className="h-4 bg-muted/50 rounded animate-pulse w-full" />
+                <div className="h-4 bg-muted/50 rounded animate-pulse w-5/6" />
+                <div className="h-4 bg-muted/50 rounded animate-pulse w-4/6" />
+              </div>
+            ) : (
+              <p className="text-muted-foreground leading-relaxed pl-6">
+                {onChainJob?.description || job.description}
+              </p>
+            )}
           </div>
 
           {/* Tags */}
@@ -217,14 +251,19 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
               
               <div className="bg-background/50 p-4 rounded-lg space-y-2">
                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Your Submission</span>
-                <a
-                  href={job.submissionLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline break-all font-medium block"
-                >
-                  {job.submissionLink}
-                </a>
+                {loadingDetails ? (
+                  <div className="h-4 bg-muted/50 rounded animate-pulse w-full" />
+                ) : (
+                  <a
+                    href={onChainJob?.deliveryUrl || job.submissionLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline break-all font-medium flex items-center gap-2"
+                  >
+                    <span className="flex-1">{onChainJob?.deliveryUrl || job.submissionLink}</span>
+                    <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                  </a>
+                )}
               </div>
               
               <p className="text-sm text-center text-muted-foreground mt-4">

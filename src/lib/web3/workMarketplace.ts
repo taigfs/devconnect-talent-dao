@@ -39,6 +39,22 @@ export interface OnChainJobBasic {
 }
 
 /**
+ * Full job information from the blockchain
+ * This matches the structure returned by getJob()
+ */
+export interface OnChainJobFull {
+  jobId: bigint;
+  requester: `0x${string}`;
+  worker: `0x${string}`;
+  reward: bigint;
+  deadline: bigint;
+  title: string;
+  description: string;
+  deliveryUrl: string;
+  status: OnChainJobStatus;
+}
+
+/**
  * Get the next job ID (total count of jobs created)
  * @returns Number of jobs created so far
  */
@@ -49,6 +65,38 @@ export async function getJobCount(): Promise<number> {
     functionName: 'nextJobId',
   });
   return Number(result);
+}
+
+/**
+ * Get full job details from the blockchain
+ * This includes description and delivery URL (submission link)
+ * @param jobId The job ID to fetch
+ * @returns Full job information
+ */
+export async function getJobDetails(jobId: number): Promise<OnChainJobFull> {
+  const result = await publicClient.readContract({
+    address: WORK_MARKETPLACE_ADDRESS,
+    abi: workMarketplaceAbi,
+    functionName: 'getJob',
+    args: [BigInt(jobId)],
+  });
+
+  // Handle result as either array or object
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const jobData = Array.isArray(result) ? result : Object.values(result as any);
+  const [jobIdBig, requester, worker, reward, deadline, title, description, deliveryUrl, status] = jobData;
+
+  return {
+    jobId: jobIdBig as bigint,
+    requester: requester as `0x${string}`,
+    worker: worker as `0x${string}`,
+    reward: reward as bigint,
+    deadline: deadline as bigint,
+    title: title as string,
+    description: description as string,
+    deliveryUrl: deliveryUrl as string,
+    status: Number(status) as OnChainJobStatus,
+  };
 }
 
 /**
