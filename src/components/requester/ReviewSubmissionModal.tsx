@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Job } from '@/contexts/AppContext';
 import { useApp } from '@/contexts/AppContext';
-import { ExternalLink, DollarSign, Clock, User } from 'lucide-react';
+import { ExternalLink, DollarSign, Clock, User, FileText, Tag, Layers } from 'lucide-react';
 import { useState } from 'react';
 
 interface ReviewSubmissionModalProps {
@@ -63,116 +63,230 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl bg-card border-primary/20 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-card/95 via-card to-card/95 border-border/50 backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Job Management</DialogTitle>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Job Management
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <h3 className="font-bold text-lg flex-1">{job.title}</h3>
+          {/* Job Header */}
+          <div className="p-5 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border border-border/50">
+            <div className="flex items-start gap-3 mb-4">
+              <h3 className="font-bold text-xl flex-1 leading-tight">{job.title}</h3>
               <Badge className={getStatusColor(job.status)}>
                 {getStatusLabel(job.status)}
               </Badge>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 text-primary font-bold">
+
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="flex items-center gap-2 text-primary font-bold bg-primary/5 px-3 py-2 rounded-lg border border-primary/10">
                 <DollarSign className="w-4 h-4" />
-                {job.reward} WETH
+                <span>{job.reward} WETH</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground bg-background/50 px-3 py-2 rounded-lg border border-border/50">
                 <Clock className="w-4 h-4" />
-                Due in {job.deadline}
+                <span>Due in {job.deadline}</span>
+              </div>
+            </div>
+
+            {/* Category & Job ID */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs bg-background/50 px-3 py-1.5 rounded-lg border border-border/50">
+                <Layers className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="font-medium">{job.category}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span>Job ID: #{job.id}</span>
               </div>
             </div>
           </div>
+
+          {/* Description */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              <h4 className="font-semibold">Description</h4>
+            </div>
+            <p className="text-muted-foreground leading-relaxed pl-6">
+              {job.description}
+            </p>
+          </div>
+
+          {/* Tags */}
+          {job.tags && job.tags.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-primary" />
+                <h4 className="font-semibold">Tags</h4>
+              </div>
+              <div className="flex flex-wrap gap-2 pl-6">
+                {job.tags.map(tag => (
+                  <span
+                    key={tag}
+                    className="text-xs px-3 py-1.5 bg-primary/10 text-primary rounded-lg border border-primary/20 font-medium"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Divider */}
+          <div className="h-px bg-border" />
+          {/* Status-Specific Content */}
           {job.status === 'OPEN' && (
-            <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-muted-foreground">No applications yet</p>
-              <p className="text-sm text-muted-foreground mt-1">Your job is live on the board</p>
+            <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <p className="font-semibold text-emerald-600 dark:text-emerald-400">Job is Live!</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Waiting for workers to apply
+              </p>
             </div>
           )}
 
           {job.status === 'IN_PROGRESS' && (
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4 text-primary" />
-                <span className="font-semibold">Worker Assigned</span>
+            <div className="p-5 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <User className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-amber-700 dark:text-amber-400">Worker Assigned</h4>
+                  <p className="text-xs text-muted-foreground">Work in progress</p>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Wallet: <span className="font-mono text-foreground">{job.applicantWallet}</span>
+              <div className="space-y-2 bg-background/50 p-3 rounded-lg">
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Wallet Address:</span>
+                  <p className="font-mono text-xs mt-1 break-all">{job.applicantWallet}</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-3 text-center">
+                ⏳ Awaiting work submission...
               </p>
-              <p className="text-sm text-muted-foreground mt-2">Awaiting submission...</p>
             </div>
           )}
 
           {job.status === 'SUBMITTED' && (
             <>
-              <div className="p-4 bg-muted rounded-lg border border-primary/20">
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary" />
-                  Submitted Work
-                </h4>
-                <div className="space-y-2">
+              {/* Submission Details */}
+              <div className="p-5 bg-blue-500/5 border border-blue-500/20 rounded-xl space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <ExternalLink className="w-4 h-4 text-blue-600" />
+                  </div>
                   <div>
-                    <span className="text-sm text-muted-foreground">Link:</span>
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-400">Work Submitted</h4>
+                    <p className="text-xs text-muted-foreground">Ready for review</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 bg-background/50 p-4 rounded-lg">
+                  <div>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Submission Link</span>
                     <a
                       href={job.submissionLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline flex items-center gap-2 break-all mt-1"
+                      className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2 break-all mt-1.5 font-medium"
                     >
                       {job.submissionLink}
-                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
                     </a>
                   </div>
+                  
+                  <div className="h-px bg-border" />
+                  
                   <div>
-                    <span className="text-sm text-muted-foreground">Worker: </span>
-                    <span className="text-sm font-mono">{job.applicantWallet}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Worker Address</span>
+                    <p className="font-mono text-xs mt-1.5 break-all">{job.applicantWallet}</p>
                   </div>
+                  
+                  <div className="h-px bg-border" />
+                  
                   <div>
-                    <span className="text-sm text-muted-foreground">Submitted: </span>
-                    <span className="text-sm">{getTimeAgo(job.submittedAt)}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Submitted</span>
+                    <p className="text-sm mt-1.5 font-medium">{getTimeAgo(job.submittedAt)}</p>
                   </div>
                 </div>
               </div>
-              <div className="border-t border-border pt-6">
-                <h4 className="font-semibold mb-3">Payment Breakdown</h4>
-                <div className="space-y-2 p-4 bg-muted rounded-lg">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Worker (80%)</span>
-                    <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(4)} WETH</span>
+              {/* Payment Breakdown */}
+              <div className="p-5 bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/10 rounded-xl">
+                <h4 className="font-semibold mb-4 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                  Payment Distribution
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-primary/10">
+                    <div>
+                      <span className="text-sm font-medium">Worker Payment</span>
+                      <p className="text-xs text-muted-foreground">80% of total reward</p>
+                    </div>
+                    <span className="font-bold text-lg text-primary">{(job.reward * 0.8).toFixed(4)} WETH</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Social Programs (20%)</span>
+                  
+                  <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Social Programs</span>
+                      <p className="text-xs text-muted-foreground">20% platform fee</p>
+                    </div>
                     <span className="font-bold text-muted-foreground">{(job.reward * 0.2).toFixed(4)} WETH</span>
                   </div>
+                  
                   <div className="h-px bg-border my-2" />
-                  <div className="flex justify-between text-lg">
-                    <span className="font-bold">Total</span>
-                    <span className="font-bold text-primary">{job.reward} WETH</span>
+                  
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="font-bold text-base">Total Escrowed</span>
+                    <span className="font-bold text-xl text-primary">{job.reward} WETH</span>
                   </div>
                 </div>
               </div>
 
+              {/* Approve Button */}
               <Button
                 onClick={handleApprove}
                 disabled={approving}
-                className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold uppercase text-lg py-6 glow-effect-strong"
+                size="lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-base h-14 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
               >
-                {approving ? 'Releasing Payment...' : 'Approve & Release Payment'}
+                {approving ? (
+                  <span className="flex items-center gap-3">
+                    <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Processing on Scroll...</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <span>✓ Approve & Release Payment</span>
+                    <DollarSign className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </span>
+                )}
               </Button>
+              
+              <p className="text-xs text-center text-muted-foreground mt-3">
+                This will release {(job.reward * 0.8).toFixed(4)} WETH to the worker and mint a reputation NFT
+              </p>
             </>
           )}
 
           {job.status === 'COMPLETED' && (
-            <div className="p-6 bg-primary/10 rounded-lg border border-primary/30 text-center">
-              <div className="text-4xl mb-2">✓</div>
-              <p className="font-bold text-primary text-lg">Payment Released</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                This job has been completed successfully
+            <div className="p-8 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 rounded-xl border-2 border-primary/20 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <div className="text-4xl">✓</div>
+              </div>
+              <p className="font-bold text-primary text-xl mb-2">Job Completed!</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Payment has been released to the worker
               </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/50 rounded-lg border border-primary/20">
+                <span className="text-xs text-muted-foreground">Worker received:</span>
+                <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(4)} WETH</span>
+              </div>
             </div>
           )}
         </div>
@@ -182,3 +296,4 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
 };
 
 export default ReviewSubmissionModal;
+

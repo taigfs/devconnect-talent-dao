@@ -3,7 +3,8 @@ import { useApp } from '@/contexts/AppContext';
 import JobCard from './JobCard';
 import JobDetailsModal from './JobDetailsModal';
 import { Button } from '@/components/ui/button';
-import { Building2, RefreshCw, Briefcase, Filter, TrendingUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Building2, RefreshCw, Briefcase, Filter, TrendingUp, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface JobBoardProps {
@@ -66,9 +67,6 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
             {/* Top Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-2 ring-primary/10">
-                  <Briefcase className="w-6 h-6 text-primary" />
-                </div>
                 <div>
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                     Available Opportunities
@@ -105,23 +103,47 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
             </div>
 
             {/* Stats Row */}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/5 border border-primary/10">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm font-medium">{openJobs.length} Open Positions</span>
-              </div>
+            <TooltipProvider>
+              <div className="flex flex-wrap gap-4">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/5 border border-primary/10 cursor-default">
+                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                      <span className="text-sm font-medium">{openJobs.length}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Open Positions</p>
+                  </TooltipContent>
+                </Tooltip>
 
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
-                <TrendingUp className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium">{inProgressJobs.length} In Progress</span>
-              </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/5 border border-yellow-500/10 cursor-default">
+                      <TrendingUp className="w-4 h-4 text-yellow-500" />
+                      <span className="text-sm font-medium">{inProgressJobs.length}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>In Progress</p>
+                  </TooltipContent>
+                </Tooltip>
 
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/5 border border-secondary/10">
-                <span className="text-sm font-medium text-secondary">
-                  {totalRewards.toFixed(4)} WETH Total Rewards
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/5 border border-secondary/10 cursor-default">
+                      <DollarSign className="w-4 h-4 text-secondary" />
+                      <span className="text-sm font-medium text-secondary">
+                        {totalRewards.toFixed(6)} WETH
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{totalRewards.toFixed(6)} WETH Total Rewards</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </div>
+            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -178,7 +200,7 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
       {selectedJob && (
         <JobDetailsModal
           job={selectedJob}
-          open={!!selectedJobId}
+          open={selectedJobId !== null}
           onClose={() => setSelectedJobId(null)}
         />
       )}

@@ -90,11 +90,16 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
   if (success) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md bg-card border-primary/20 glow-effect">
+        <DialogContent className="sm:max-w-md bg-gradient-to-br from-card/95 via-card to-card/95 border-primary/30 backdrop-blur-xl shadow-2xl">
           <div className="flex flex-col items-center justify-center py-12">
-            <CheckCircle2 className="w-24 h-24 text-primary mb-4 animate-scale-in" />
-            <h3 className="text-2xl font-bold text-primary mb-2">Job Posted!</h3>
-            <p className="text-muted-foreground">Your job is now live on the board</p>
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+              <CheckCircle2 className="relative w-24 h-24 text-primary mb-4 animate-in zoom-in duration-500" />
+            </div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
+              Job Posted Successfully!
+            </h3>
+            <p className="text-muted-foreground text-center">Your job is now live and visible to workers</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -103,10 +108,12 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl bg-card border-primary/20 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-card/95 via-card to-card/95 border-border/50 backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold">Post New Job</DialogTitle>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Post New Job
+            </DialogTitle>
             {isTestMode && (
               <Button
                 type="button"
@@ -122,34 +129,34 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="title">Job Title</Label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-semibold">Job Title</Label>
             <Input
               id="title"
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g., Build a React Dashboard"
-              className="bg-muted border-border"
+              className="bg-muted/50 border-border/50 focus:border-primary/50 transition-colors h-11"
             />
           </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
             <Textarea
               id="description"
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Describe the work you need done..."
-              className="bg-muted border-border min-h-32"
+              className="bg-muted/50 border-border/50 focus:border-primary/50 transition-colors min-h-32 resize-none"
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="reward">Reward (WETH)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="reward" className="text-sm font-semibold">Reward (WETH)</Label>
               <Input
                 id="reward"
                 type="number"
@@ -159,27 +166,29 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
                 value={formData.reward}
                 onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
                 placeholder="0.01"
-                className={`bg-muted border-border ${insufficientBalance ? 'border-destructive' : ''}`}
+                className={`bg-muted/50 border-border/50 focus:border-primary/50 transition-colors h-11 ${
+                  insufficientBalance ? 'border-destructive focus:border-destructive' : ''
+                }`}
               />
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center justify-between mt-1.5">
                 <span className="text-xs text-muted-foreground">
-                  Your WETH: {formatWeth(wethBalance)} WETH
+                  Balance: {formatWeth(wethBalance)} WETH
                 </span>
                 {insufficientBalance && (
-                  <span className="text-xs text-destructive">
-                    Insufficient WETH
+                  <span className="text-xs text-destructive font-medium">
+                    Insufficient balance
                   </span>
                 )}
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="category">Category</Label>
+            <div className="space-y-2">
+              <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value as JobCategory })}
               >
-                <SelectTrigger className="bg-muted border-border">
+                <SelectTrigger className="bg-muted/50 border-border/50 focus:border-primary/50 h-11">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -192,29 +201,36 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="deadline">Deadline</Label>
+          <div className="space-y-2">
+            <Label htmlFor="deadline" className="text-sm font-semibold">Deadline</Label>
             <Input
               id="deadline"
               required
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
               placeholder="e.g., 3 days, 1 week"
-              className="bg-muted border-border"
+              className="bg-muted/50 border-border/50 focus:border-primary/50 transition-colors h-11"
             />
           </div>
 
-          <div className="pt-4 space-y-2">
+          <div className="pt-4 space-y-3">
             <Button
               type="submit"
-              disabled={posting || !isFormValid}
-              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold text-lg py-6 glow-effect disabled:opacity-50"
+              disabled={posting || !isFormValid || insufficientBalance}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold text-base h-12 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {posting ? 'Creating job on Scroll...' : 'Create Job'}
+              {posting ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Creating on Scroll...
+                </span>
+              ) : (
+                'Create Job on Scroll'
+              )}
             </Button>
             {posting && (
-              <p className="text-xs text-center text-muted-foreground">
-                Confirm transaction in MetaMask...
+              <p className="text-xs text-center text-muted-foreground animate-pulse">
+                Please confirm the transaction in your wallet...
               </p>
             )}
           </div>

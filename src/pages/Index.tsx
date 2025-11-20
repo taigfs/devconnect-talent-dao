@@ -37,6 +37,13 @@ const AppContent = () => {
     }
   };
 
+  const handleSwitchToWorker = () => {
+    if (user) {
+      connectWallet('worker', user.wallet);
+      setCurrentView('worker_main');
+    }
+  };
+
   // Sincronizar view com role - apenas quando role mudar, não quando view mudar
   useEffect(() => {
     if (user) {
@@ -80,7 +87,7 @@ const AppContent = () => {
       {currentView === 'worker_main' ? (
         <JobBoard onSwitchToRequester={handleSwitchToRequester} />
       ) : (
-        <RequesterDashboard />
+        <RequesterDashboard onSwitchToWorker={handleSwitchToWorker} />
       )}
       
       {showCompletionAnimation && completedJob && (

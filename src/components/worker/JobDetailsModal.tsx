@@ -42,9 +42,11 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl bg-card border-primary/20 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-card/95 via-card to-card/95 border-border/50 backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">{job.title}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            {job.title}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -118,17 +120,17 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
           {/* Submission form for in-progress jobs */}
           {canSubmit && (
             <div className="border-t border-border pt-6 space-y-4">
-              <Label htmlFor="submission">Submission Link</Label>
+              <Label htmlFor="submission" className="text-sm font-semibold">Submission Link</Label>
               <Input
                 id="submission"
                 placeholder="https://github.com/... or https://figma.com/..."
                 value={submissionLink}
                 onChange={(e) => setSubmissionLink(e.target.value)}
-                className="bg-muted border-border"
+                className="bg-muted/50 border-border/50 focus:border-primary/50 transition-colors h-11"
               />
               <Button
                 onClick={handleSubmit}
-                className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold"
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold text-base h-12 shadow-lg hover:shadow-xl transition-all"
               >
                 Submit Work
               </Button>
@@ -159,7 +161,7 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
           {canApply && (
             <Button
               onClick={handleApply}
-              className="w-full bg-primary hover:bg-secondary text-primary-foreground font-bold text-lg py-6 glow-effect"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold text-base h-12 shadow-lg hover:shadow-xl transition-all"
             >
               Apply for Job
             </Button>
