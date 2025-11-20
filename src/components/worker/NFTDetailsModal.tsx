@@ -7,8 +7,10 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Award, Calendar, Building2 } from 'lucide-react';
+import { ExternalLink, Award, Calendar, Building2, Share2 } from 'lucide-react';
 import { WorkNFT, CATEGORY_LOGOS, COMPANY_LOGOS } from '@/types/nft';
+import { getScrollscanAddressUrl } from '@/lib/web3/constants';
+import { getNftBackgroundColor } from '@/lib/staticNftImages';
 
 interface NFTDetailsModalProps {
   nft: WorkNFT | null;
@@ -21,6 +23,9 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
   const categoryLogo = CATEGORY_LOGOS[nft.category];
   const companyLogo = COMPANY_LOGOS[nft.company];
+  
+  // Get background color matching the NFT image
+  const bgColor = nft.tokenId ? getNftBackgroundColor(nft.tokenId) : '#FF8C42';
 
   const formattedDate = new Date(nft.deliveredAt).toLocaleDateString('en-US', {
     day: 'numeric',
@@ -30,7 +35,7 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-primary/20">
+      <DialogContent className="max-w-2xl max-h-[90vh] bg-card border-primary/20 overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
             <Award className="w-6 h-6 text-primary" />
@@ -41,13 +46,16 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* NFT Image */}
-          <div className="relative w-full h-64 rounded-lg overflow-hidden border border-primary/20">
+        <div className="space-y-6 pb-2">
+          {/* NFT Image - Portrait aspect ratio with matching background */}
+          <div 
+            className="relative w-full aspect-[3/4] max-h-[400px] rounded-lg overflow-hidden border border-primary/20 flex items-center justify-center"
+            style={{ backgroundColor: bgColor }}
+          >
             <img
               src={nft.imageUrl}
               alt={nft.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
 
             {/* Logo Badges */}
@@ -136,26 +144,35 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
             {/* Actions */}
             <div className="flex gap-3 pt-2">
+              {nft.contractAddress && (
+                <Button
+                  variant="outline"
+                  className="flex-1 border-primary/30 hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => {
+                    const url = `${getScrollscanAddressUrl(nft.contractAddress as `0x${string}`)}?a=${nft.tokenId}#inventory`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View on ScrollScan
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="flex-1 border-primary/30 hover:bg-primary hover:text-primary-foreground"
-                disabled
+                onClick={() => {
+                  const shareText = `Check out my Work Credential NFT #${nft.tokenId} on MintWork! 🎉`;
+                  if (navigator.share) {
+                    navigator.share({ title: nft.title, text: shareText });
+                  } else {
+                    navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+                  }
+                }}
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                View on Explorer
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 border-primary/30 hover:bg-primary hover:text-primary-foreground"
-                disabled
-              >
+                <Share2 className="w-4 h-4 mr-2" />
                 Share NFT
               </Button>
             </div>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Blockchain integration coming soon
-            </p>
           </div>
         </div>
       </DialogContent>

@@ -80,37 +80,25 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
               </div>
 
               <div className="flex items-center gap-3">
-                <Button
-                  onClick={() => navigate('/my-nfts')}
-                  variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all"
-                >
-                  <Trophy className="w-4 h-4" />
-                  <span className="hidden sm:inline">My NFTs</span>
-                </Button>
-
-                <Button
-                  onClick={handleRefresh}
-                  variant="outline"
-                  size="sm"
-                  disabled={isRefreshing}
-                  className="h-9 gap-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">Sync</span>
-                </Button>
-
                 {onSwitchToRequester && (
                   <Button
                     onClick={onSwitchToRequester}
                     size="sm"
-                    className="h-9 gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all"
+                    className="h-9 gap-2 bg-black hover:bg-black/90 text-white shadow-md hover:shadow-lg transition-all"
                   >
                     <Building2 className="w-4 h-4" />
                     <span>Hire Talent</span>
                   </Button>
                 )}
+
+                <Button
+                  onClick={() => navigate('/my-nfts')}
+                  size="sm"
+                  className="h-9 gap-2 bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all"
+                >
+                  <Trophy className="w-4 h-4" />
+                  <span className="hidden sm:inline">My NFTs</span>
+                </Button>
               </div>
             </div>
 

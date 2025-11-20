@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import { WorkNFT, CATEGORY_LOGOS, COMPANY_LOGOS } from '@/types/nft';
+import { getNftBackgroundColor } from '@/lib/staticNftImages';
 
 interface NFTCardProps {
   nft: WorkNFT;
@@ -13,6 +14,9 @@ interface NFTCardProps {
 export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
   const categoryLogo = CATEGORY_LOGOS[nft.category];
   const companyLogo = COMPANY_LOGOS[nft.company];
+  
+  // Get background color matching the NFT image
+  const bgColor = nft.tokenId ? getNftBackgroundColor(nft.tokenId) : '#FF8C42';
 
   // Format date
   const formattedDate = new Date(nft.deliveredAt).toLocaleDateString('en-US', {
@@ -23,26 +27,32 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
 
   return (
     <Card
-      className="group relative overflow-hidden bg-gradient-to-br from-card via-card to-card/50 border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 cursor-pointer"
+      className="group relative overflow-hidden border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 cursor-pointer"
       style={{
         animation: `fadeInUp 0.6s ease-out ${index * 0.1}s backwards`,
+        backgroundColor: bgColor,
       }}
       onClick={() => onViewDetails(nft)}
     >
-      {/* Background Image */}
-      <div className="relative w-full h-48 overflow-hidden">
+      {/* NFT Image - Portrait aspect ratio, not stretched - 30% less tall */}
+      <div className="relative w-full aspect-[3/2.8] overflow-hidden flex items-center justify-center">
         <img
           src={nft.imageUrl}
           alt={nft.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
+        {/* Subtle gradient overlay at bottom */}
+        <div 
+          className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+          style={{
+            background: `linear-gradient(to top, ${bgColor}, transparent)`,
+          }}
+        />
 
-        {/* Company Logo Badge - Top Right */}
+        {/* Company Logo Badge - Top Right - 2x bigger */}
         {companyLogo && (
-          <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white border-2 border-white/20 overflow-hidden">
+          <div className="absolute top-3 right-3 w-20 h-20 rounded-full bg-white border-2 border-white/20 overflow-hidden shadow-lg">
             <img
               src={companyLogo}
               alt={nft.company}
@@ -51,9 +61,9 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
           </div>
         )}
 
-        {/* Category Logo Badge - Bottom Right */}
+        {/* Category Logo Badge - Bottom Right - 2x bigger */}
         {categoryLogo && (
-          <div className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white border-2 border-white/20 overflow-hidden p-1.5">
+          <div className="absolute bottom-3 right-3 w-20 h-20 rounded-full bg-white border-2 border-white/20 overflow-hidden p-3 shadow-lg">
             <img
               src={categoryLogo}
               alt={nft.category}
@@ -66,7 +76,7 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
       {/* Content */}
       <CardContent className="p-4 space-y-2">
         {/* Title */}
-        <h3 className="font-semibold text-lg text-white line-clamp-1 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-lg text-white line-clamp-1">
           {nft.title}
         </h3>
 
@@ -77,15 +87,17 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
 
         {/* Category Badge */}
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+          <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-black/40 backdrop-blur-sm">
             {nft.category}
           </Badge>
         </div>
 
         {/* Delivery Date */}
-        <p className="text-xs text-muted-foreground">
-          Delivered on {formattedDate}
-        </p>
+        <div className="inline-block">
+          <Badge variant="outline" className="text-xs border-white/20 text-white/90 bg-black/40 backdrop-blur-sm">
+            Delivered on {formattedDate}
+          </Badge>
+        </div>
       </CardContent>
 
       {/* Footer */}

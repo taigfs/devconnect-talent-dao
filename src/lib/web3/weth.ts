@@ -100,12 +100,13 @@ export async function getWethAllowance(
   spender: `0x${string}`
 ): Promise<bigint> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allowance = await publicClient.readContract({
       address: WETH_ADDRESS,
       abi: wethAbi,
       functionName: 'allowance',
       args: [owner, spender],
-    });
+    } as any);
 
     return allowance as bigint;
   } catch (error) {
@@ -121,13 +122,13 @@ export async function getWethAllowance(
  */
 export async function getWethBalance(address: `0x${string}`): Promise<bigint> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const balance = await publicClient.readContract({
       address: WETH_ADDRESS,
       abi: wethAbi,
       functionName: 'balanceOf',
       args: [address],
-      account: address,
-    });
+    } as any);
 
     return balance as bigint;
   } catch (error) {

@@ -26,15 +26,18 @@ const jobTitles = [
   'Build Analytics Dashboard',
 ];
 
+// Company keywords for injection into dummy data
+const COMPANY_KEYWORDS = ['Coinbase', 'Scroll', 'Base', 'Chainlink', 'Aave', 'Uniswap', 'MercadoLibre', 'Nubank', 'Rappi', 'Globant'];
+
 const descriptionTemplates = [
-  'Looking for an experienced developer to help with this project. Must have strong attention to detail and good communication skills.',
-  'Need someone who can deliver high-quality work within the deadline. Previous experience in similar projects is a plus.',
-  'Seeking a talented professional to complete this task. The ideal candidate should be reliable and proactive.',
-  'This project requires expertise and creativity. Looking for someone who can bring fresh ideas to the table.',
-  'We need a skilled individual to handle this work. Must be comfortable working independently and meeting deadlines.',
-  'Searching for a dedicated professional who can take ownership of this project from start to finish.',
-  'Looking for someone with proven experience in this field. Quality and timely delivery are essential.',
-  'Need a creative and technical person who can understand requirements and deliver exceptional results.',
+  (company: string) => `Looking for an experienced developer to help with this project for ${company}. Must have strong attention to detail and good communication skills.`,
+  (company: string) => `Need someone who can deliver high-quality work within the deadline. This is a partnership with ${company} and previous experience in similar projects is a plus.`,
+  (company: string) => `Seeking a talented professional to complete this task for ${company}. The ideal candidate should be reliable and proactive.`,
+  (company: string) => `This project requires expertise and creativity for ${company}. Looking for someone who can bring fresh ideas to the table.`,
+  (company: string) => `We need a skilled individual to handle this work in collaboration with ${company}. Must be comfortable working independently and meeting deadlines.`,
+  (company: string) => `Searching for a dedicated professional who can take ownership of this ${company} project from start to finish.`,
+  (company: string) => `Looking for someone with proven experience in this field to work on a ${company} integration. Quality and timely delivery are essential.`,
+  (company: string) => `Need a creative and technical person who can understand requirements and deliver exceptional results for our ${company} partnership.`,
 ];
 
 const rewards = ['0.00001', '0.000025', '0.00005', '0.000075', '0.0001', '0.00015', '0.0002', '0.00025', '0.0003', '0.0005'];
@@ -52,14 +55,22 @@ function generateRandomDeadline(): string {
 
 /**
  * Generates random job form data for testing purposes
+ * Automatically injects company names into descriptions for demo purposes
  */
 export function generateRandomJobData(): JobFormData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const randomIndex = (arr: any[]) => Math.floor(Math.random() * arr.length);
 
+  // Pick a random company for this dummy job
+  const randomCompany = COMPANY_KEYWORDS[randomIndex(COMPANY_KEYWORDS)];
+  
+  // Pick a random description template and inject the company
+  const descriptionTemplate = descriptionTemplates[randomIndex(descriptionTemplates)];
+  const description = descriptionTemplate(randomCompany);
+
   return {
     title: jobTitles[randomIndex(jobTitles)],
-    description: descriptionTemplates[randomIndex(descriptionTemplates)],
+    description,
     reward: rewards[randomIndex(rewards)],
     category: categories[randomIndex(categories)],
     deadline: generateRandomDeadline(),
