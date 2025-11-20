@@ -1,4 +1,4 @@
-# TalentDAO - Web3 Gig Marketplace
+# MintWork - Web3 Gig Marketplace
 
 Decentralized talent marketplace. 80% to workers, 20% to social programs. 100% transparent.
 

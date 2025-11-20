@@ -45,10 +45,10 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             <img 
               src="/Logo.png" 
-              alt="TalentDAO Logo" 
+              alt="MintWork Logo" 
               className="w-8 h-8 object-contain"
             />
-            <span className="text-xl font-bold">TalentDAO</span>
+            <span className="text-xl font-bold">MintWork</span>
           </div>
 
           <div className="flex items-center gap-4">

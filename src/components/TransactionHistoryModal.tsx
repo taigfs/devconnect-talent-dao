@@ -20,7 +20,7 @@ const TransactionHistoryModal = ({ open, onClose }: TransactionHistoryModalProps
             Transaction History
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            View all your transactions on TalentDAO
+            View all your transactions on MintWork
           </DialogDescription>
         </DialogHeader>
 

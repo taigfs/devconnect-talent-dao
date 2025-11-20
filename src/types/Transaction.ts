@@ -1,5 +1,5 @@
 /**
- * Transaction Types for TalentDAO Mini App
+ * Transaction Types for MintWork Mini App
  * 
  * Tracks all internal app transactions for user history
  */
