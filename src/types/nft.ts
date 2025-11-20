@@ -24,4 +24,53 @@ export const COMPANY_LOGOS: Record<string, string> = {
   'MercadoLibre': 'https://logo.clearbit.com/mercadolibre.com',
   Rappi: 'https://logo.clearbit.com/rappi.com',
   Globant: 'https://logo.clearbit.com/globant.com',
+  Coinbase: 'https://logo.clearbit.com/coinbase.com',
+  Scroll: 'https://scroll.io/logo.svg',
+  Base: 'https://logo.clearbit.com/base.org',
+  Chainlink: 'https://logo.clearbit.com/chain.link',
+  Aave: 'https://logo.clearbit.com/aave.com',
+  Uniswap: 'https://logo.clearbit.com/uniswap.org',
 };
+
+/**
+ * Company tag mapping for detection
+ * Maps lowercase search terms to official company names
+ */
+const COMPANY_TAG_TO_NAME: Record<string, string> = {
+  'nubank': 'Nubank',
+  'mercadolibre': 'MercadoLibre',
+  'mercado libre': 'MercadoLibre',
+  'rappi': 'Rappi',
+  'globant': 'Globant',
+  'coinbase': 'Coinbase',
+  'scroll': 'Scroll',
+  'base': 'Base',
+  'chainlink': 'Chainlink',
+  'aave': 'Aave',
+  'uniswap': 'Uniswap',
+};
+
+/**
+ * Detect companies from text (title + description)
+ * Returns array of detected companies with their logos
+ * 
+ * @param text Combined text to search (usually title + description)
+ * @returns Array of detected companies with logo URLs
+ */
+export function detectCompaniesFromText(text: string): Array<{ tag: string; logo: string; name: string }> {
+  const lower = text.toLowerCase();
+  const detected: Array<{ tag: string; logo: string; name: string }> = [];
+  const seen = new Set<string>();
+
+  Object.entries(COMPANY_TAG_TO_NAME).forEach(([tag, companyName]) => {
+    if (lower.includes(tag) && !seen.has(companyName)) {
+      const logo = COMPANY_LOGOS[companyName];
+      if (logo) {
+        detected.push({ tag, logo, name: companyName });
+        seen.add(companyName);
+      }
+    }
+  });
+
+  return detected;
+}
