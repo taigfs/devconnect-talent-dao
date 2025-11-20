@@ -8,18 +8,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, DollarSign, Copy, Check, Plus, Receipt } from 'lucide-react';
+import { LogOut, Copy, Check, Receipt } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import DepositModal from '@/components/DepositModal';
 import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 
 // Navbar não precisa mais de props, apenas renderiza com base no contexto
 const Navbar = () => {
-  const { user, logout, balance, depositWithLemon } = useApp();
+  const { user, logout } = useApp();
   const { disconnect } = useAppWallet();
   const [copied, setCopied] = useState(false);
-  const [showDepositModal, setShowDepositModal] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
 
   const handleCopyAddress = async () => {
@@ -33,10 +31,6 @@ const Navbar = () => {
     } catch (err) {
       toast.error('Failed to copy address');
     }
-  };
-
-  const handleDeposit = async (amount: number) => {
-    await depositWithLemon(amount);
   };
 
   const handleLogout = () => {
@@ -58,24 +52,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {user?.role === 'requester' && (
-              <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded border border-primary/30">
-                  <DollarSign className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-bold text-primary">
-                    {balance.toLocaleString()} USDC
-                  </span>
-                </div>
-                <Button
-                  onClick={() => setShowDepositModal(true)}
-                  size="sm"
-                  className="hidden sm:flex items-center gap-2 bg-primary hover:bg-secondary text-primary-foreground font-semibold"
-                >
-                  <Plus className="w-4 h-4" />
-                  Deposit with Lemon
-                </Button>
-              </>
-            )}
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -134,16 +110,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Deposit Modal */}
-      {user?.role === 'requester' && (
-        <DepositModal
-          open={showDepositModal}
-          onClose={() => setShowDepositModal(false)}
-          onDeposit={handleDeposit}
-        />
-      )}
-
-      {/* Transaction History Modal */}
       {user && (
         <TransactionHistoryModal
           open={showTransactionHistory}

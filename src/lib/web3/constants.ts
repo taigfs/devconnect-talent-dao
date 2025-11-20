@@ -16,8 +16,16 @@ export const WORK_MARKETPLACE_ADDRESS =
  * WETH (Wrapped ETH) token address on Scroll Sepolia
  * This is the ERC20 token used for job payments
  * 
- * TODO: Confirm the correct WETH address for Scroll Sepolia with the team
- * Common Scroll Sepolia WETH: 0x5300000000000000000000000000000000000004
+ * ⚠️ CRITICAL: The deployed WorkMarketplace was deployed with WRONG WETH address!
+ * 
+ * The contract at 0x88498F482EA125f326b03Df57e3F49e247426e2f uses 0x06eF...3A4
+ * which is NOT a valid WETH contract (balanceOf fails).
+ * 
+ * SOLUTION: Re-deploy WorkMarketplace with the canonical Scroll WETH:
+ * 0x5300000000000000000000000000000000000004
+ * 
+ * For now, using canonical WETH to at least show balance in UI.
+ * But createJob WILL FAIL until contract is re-deployed!
  */
 export const WETH_ADDRESS =
   (import.meta.env.VITE_WETH_ADDRESS as `0x${string}`) ||

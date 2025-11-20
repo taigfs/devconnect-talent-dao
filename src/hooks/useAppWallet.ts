@@ -78,7 +78,6 @@ export function useAppWallet() {
             throw permErr;
           }
           // Para outros erros (ex: método não suportado), continua
-          console.log('Fallback para eth_requestAccounts');
         }
 
         const accounts = await ethereum.request({
@@ -101,7 +100,6 @@ export function useAppWallet() {
       if (error?.code === 4001) {
         setError('Conexão cancelada pelo usuário');
       } else {
-        console.error('Erro ao conectar wallet:', err);
         setError(error?.message ?? 'Erro ao conectar carteira');
       }
       setAddress(null);

@@ -26,7 +26,6 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
     } catch (error) {
       // Error handling is done in AppContext (toast notifications)
       // Don't close modal if transaction failed or was rejected
-      console.error('Failed to approve work:', error);
     } finally {
       setApproving(false);
     }

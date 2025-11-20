@@ -115,9 +115,13 @@ export async function createJobOnChain(params: {
 }) {
   if (!walletClient) throw new Error('No wallet client available');
 
+  const currentChainId = await walletClient.getChainId();
+  if (currentChainId !== scrollChain.id) {
+    await walletClient.switchChain({ id: scrollChain.id });
+  }
+
   const account = await getCurrentAccount();
 
-  // Estimate gas to catch errors early
   const gas = await publicClient.estimateContractGas({
     account,
     address: WORK_MARKETPLACE_ADDRESS,
@@ -144,7 +148,6 @@ export async function createJobOnChain(params: {
     if ('topics' in event && event.topics && Array.isArray(event.topics) && event.topics.length > 1) {
       const topic = event.topics[1];
       if (typeof topic === 'string') {
-        // Convert hex string to BigInt, then to number
         jobId = Number(BigInt(topic));
       }
     }
@@ -162,6 +165,11 @@ export async function createJobOnChain(params: {
  */
 export async function takeJobOnChain(jobId: number) {
   if (!walletClient) throw new Error('No wallet client available');
+
+  const currentChainId = await walletClient.getChainId();
+  if (currentChainId !== scrollChain.id) {
+    await walletClient.switchChain({ id: scrollChain.id });
+  }
 
   const account = await getCurrentAccount();
   const jobIdBigInt = BigInt(jobId);
@@ -199,6 +207,11 @@ export async function takeJobOnChain(jobId: number) {
  */
 export async function submitWorkOnChain(jobId: number, proofLink: string) {
   if (!walletClient) throw new Error('No wallet client available');
+
+  const currentChainId = await walletClient.getChainId();
+  if (currentChainId !== scrollChain.id) {
+    await walletClient.switchChain({ id: scrollChain.id });
+  }
 
   const account = await getCurrentAccount();
   const jobIdBigInt = BigInt(jobId);
@@ -238,6 +251,11 @@ export async function submitWorkOnChain(jobId: number, proofLink: string) {
  */
 export async function approveWorkOnChain(jobId: number) {
   if (!walletClient) throw new Error('No wallet client available');
+
+  const currentChainId = await walletClient.getChainId();
+  if (currentChainId !== scrollChain.id) {
+    await walletClient.switchChain({ id: scrollChain.id });
+  }
 
   const account = await getCurrentAccount();
   const jobIdBigInt = BigInt(jobId);

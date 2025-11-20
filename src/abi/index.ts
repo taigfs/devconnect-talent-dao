@@ -10,7 +10,8 @@ import WorkNFTJson from './WorkNFT.json';
 import IWorkNFTJson from './IWorkNFT.json';
 
 // Fallback to handle both formats: { abi: [...] } or just [...]
-export const workMarketplaceAbi = (WorkMarketplaceJson as any).abi ?? WorkMarketplaceJson;
-export const workNftAbi = (WorkNFTJson as any).abi ?? WorkNFTJson;
-export const iWorkNftAbi = (IWorkNFTJson as any).abi ?? IWorkNFTJson;
+type AbiJson = { abi?: unknown } | unknown[];
+export const workMarketplaceAbi = (WorkMarketplaceJson as AbiJson).abi ?? WorkMarketplaceJson;
+export const workNftAbi = (WorkNFTJson as AbiJson).abi ?? WorkNFTJson;
+export const iWorkNftAbi = (IWorkNFTJson as AbiJson).abi ?? IWorkNFTJson;
 

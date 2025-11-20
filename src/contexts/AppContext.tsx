@@ -1,12 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { AppTransaction } from '@/types/Transaction';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-import { parseUnits } from 'viem';
-import { approveWethForMarketplace } from '@/lib/web3/weth';
+import { parseEther, formatEther, formatUnits } from 'viem';
+import { approveWethForMarketplace, getWethBalance, getWethAllowance } from '@/lib/web3/weth';
 import { createJobOnChain, approveWorkOnChain, getAllJobsBasic, OnChainJobBasic, OnChainJobStatus } from '@/lib/web3/workMarketplace';
 import { WORK_MARKETPLACE_ADDRESS, getScrollscanTxUrl } from '@/lib/web3/constants';
-import { formatUnits } from 'viem';
 
 export type UserRole = 'worker' | 'requester' | null;
 export type JobStatus = 'OPEN' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED';
@@ -43,6 +42,7 @@ interface AppContextType {
   user: User | null;
   jobs: Job[];
   balance: number;
+  wethBalance: bigint;
   transactions: AppTransaction[];
   connectWallet: (role: UserRole, wallet: string) => void;
   completeKYC: (data: Partial<User>) => void;
@@ -50,7 +50,7 @@ interface AppContextType {
   createJobWithScroll: (params: {
     title: string;
     description: string;
-    reward: number;
+    reward: string;
     deadline: string;
     category: JobCategory;
     requester: string;
@@ -61,6 +61,7 @@ interface AppContextType {
   submitWork: (jobId: number, link: string) => void;
   approveWork: (jobId: number) => Promise<void>;
   depositWithLemon: (amount: number) => Promise<void>;
+  refreshWethBalance: () => Promise<void>;
   logout: () => void;
   showCompletionAnimation: boolean;
   setShowCompletionAnimation: (show: boolean) => void;
@@ -167,11 +168,26 @@ const getInitialState = () => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState(getInitialState);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const [wethBalance, setWethBalance] = useState<bigint>(0n);
 
   const user = state.currentUser ? state.users[state.currentUser] : null;
   const jobs = state.jobs;
   const balance = user ? (state.balances[user.wallet] || 0) : 0;
   const transactions = state.transactions || [];
+
+  const refreshWethBalance = useCallback(async () => {
+    if (!user?.wallet) return;
+    try {
+      const balance = await getWethBalance(user.wallet as `0x${string}`);
+      setWethBalance(balance);
+    } catch (error) {
+      setWethBalance(0n);
+    }
+  }, [user?.wallet]);
+
+  useEffect(() => {
+    refreshWethBalance();
+  }, [refreshWethBalance]);
 
   // Save to localStorage whenever state changes
   useEffect(() => {
@@ -248,8 +264,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       transactions: [transaction, ...(prev.transactions || [])]
     }));
-
-    console.log('[TRANSACTION REGISTERED]', transaction);
   };
 
   const addJob = (job: Omit<Job, 'id' | 'status'>) => {
@@ -365,7 +379,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const onChainJobs = await getAllJobsBasic();
       
       if (onChainJobs.length === 0) {
-        console.log('[Scroll] No on-chain jobs found');
         return;
       }
 
@@ -404,18 +417,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       });
 
-      console.log(`[Scroll] Synced ${mappedJobs.length} jobs from chain`);
       
     } catch (error) {
-      console.error('[Scroll] Failed to sync jobs:', error);
-      // Don't throw - keep local jobs if sync fails
+      // Silently fail - keep local jobs if sync fails
     }
   };
 
   const createJobWithScroll = async (params: {
     title: string;
     description: string;
-    reward: number;
+    reward: string; // human-readable WETH
     deadline: string;
     category: JobCategory;
     requester: string;
@@ -424,20 +435,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!user) throw new Error('No user connected');
 
     try {
-      // 1. Convert reward to token units (assuming 6 decimals for USDC/WETH)
-      const rewardInTokens = parseUnits(params.reward.toString(), 6);
-
-      // 2. Convert deadline string to timestamp (simplified: add 7 days from now)
-      // TODO: Parse deadline string properly (e.g., "3 days", "1 week")
+      const rewardInWei = parseEther(params.reward);
       const deadlineTimestamp = BigInt(Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60);
 
-      // 3. Approve WETH -> Marketplace
-      toast.info('Approving WETH...', { description: 'Please confirm in MetaMask' });
+      // Verify WETH balance
+      const balance = await getWethBalance(user.wallet as `0x${string}`);
       
-      const approveResult = await approveWethForMarketplace({
-        spender: WORK_MARKETPLACE_ADDRESS,
-        amount: rewardInTokens,
-      });
+      if (balance < rewardInWei) {
+        const errorMsg = `Saldo de WETH insuficiente! Você tem ${formatEther(balance)} WETH, mas precisa de ${params.reward} WETH`;
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      // Approve WETH (10x to avoid precision issues)
+      const approveAmount = rewardInWei * 10n;
+      toast.info('Aprovando WETH...', { description: 'Please confirm in MetaMask' });
+      
+      const approveResult = await approveWethForMarketplace(approveAmount);
 
       toast.success('WETH Approved!', {
         description: `Tx: ${approveResult.hash.slice(0, 10)}...`,
@@ -447,11 +461,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         },
       });
 
+      // Verify allowance
+      const allowance = await getWethAllowance(
+        user.wallet as `0x${string}`,
+        WORK_MARKETPLACE_ADDRESS
+      );
+      
+      if (allowance < rewardInWei) {
+        toast.error('Erro no approve. Tente novamente.');
+        throw new Error('Insufficient allowance');
+      }
+
       // 4. Create job on-chain
       toast.info('Creating job on Scroll...', { description: 'Please confirm in MetaMask' });
 
       const createResult = await createJobOnChain({
-        rewardInTokens,
+        rewardInTokens: rewardInWei,
         deadline: deadlineTimestamp,
         title: params.title,
         description: params.description,
@@ -470,7 +495,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: createResult.jobId || Date.now(),
         title: params.title,
         description: params.description,
-        reward: params.reward,
+        reward: Number(params.reward),
         status: 'OPEN',
         category: params.category,
         requester: params.requester,
@@ -482,24 +507,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setState(prev => ({
         ...prev,
         jobs: [newJob, ...prev.jobs],
-        balances: {
-          ...prev.balances,
-          [user.wallet]: prev.balances[user.wallet] - params.reward,
-        },
       }));
 
       // 6. Register transaction
       addTransaction({
         user: user.wallet,
         type: 'job_creation',
-        amount: params.reward,
+        amount: Number(params.reward),
         jobId: newJob.id,
         metadata: { title: params.title, onChain: true, txHash: createResult.hash },
       });
 
+      // 7. Refresh WETH balance
+      await refreshWethBalance();
+
     } catch (error: unknown) {
-      console.error('[Scroll] createJob failed', error);
-      
       const errorObj = error as { message?: string; code?: number };
       
       // User rejected transaction
@@ -597,15 +619,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // MOCK: simula delay da transação
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    console.log('[MOCK] DepositWithLemon', { 
-      wallet: user.wallet, 
-      amount,
-      timestamp: new Date().toISOString()
-    });
-
-    // FUTURO: substituir por chamada real ao Lemon SDK
-    // const result = await depositReal(amount);
-    // if (!result.success) throw new Error('Deposit failed');
+    // Mock deposit implementation
 
     setState(prev => ({
       ...prev,
@@ -633,7 +647,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Optional: Sync jobs from chain when user connects
   // useEffect(() => {
   //   if (user) {
-  //     syncJobsFromChain().catch(console.error);
   //   }
   // }, [user]);
 
@@ -642,6 +655,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user,
       jobs,
       balance,
+      wethBalance,
       transactions,
       connectWallet,
       completeKYC,
@@ -652,6 +666,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       submitWork,
       approveWork,
       depositWithLemon,
+      refreshWethBalance,
       logout,
       showCompletionAnimation,
       setShowCompletionAnimation
@@ -661,6 +676,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) {

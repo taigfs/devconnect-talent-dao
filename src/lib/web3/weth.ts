@@ -6,7 +6,8 @@
  */
 
 import { walletClient, publicClient, getCurrentAccount, scrollChain } from './scrollClient';
-import { WETH_ADDRESS } from './constants';
+import { WETH_ADDRESS, WORK_MARKETPLACE_ADDRESS } from './constants';
+import { formatEther } from 'viem';
 import type { Abi } from 'viem';
 
 /**
@@ -47,16 +48,17 @@ export const wethAbi: Abi = [
  * Approve WETH spending for the WorkMarketplace contract
  * This must be called before creating a job
  * 
- * @param params.spender Address allowed to spend (usually WORK_MARKETPLACE_ADDRESS)
- * @param params.amount Amount to approve in token units (e.g., 200000000 for 200 USDC with 6 decimals)
+ * @param amount Amount to approve in wei (parseEther result)
  * @returns Transaction hash and receipt
  */
-export async function approveWethForMarketplace(params: {
-  spender: `0x${string}`;
-  amount: bigint;
-}) {
+export async function approveWethForMarketplace(amount: bigint) {
   if (!walletClient) throw new Error('No wallet client available');
-  
+
+  const currentChainId = await walletClient.getChainId();
+  if (currentChainId !== scrollChain.id) {
+    await walletClient.switchChain({ id: scrollChain.id });
+  }
+
   const account = await getCurrentAccount();
 
   // Estimate gas to catch errors early
@@ -65,7 +67,7 @@ export async function approveWethForMarketplace(params: {
     address: WETH_ADDRESS,
     abi: wethAbi,
     functionName: 'approve',
-    args: [params.spender, params.amount],
+    args: [WORK_MARKETPLACE_ADDRESS, amount],
   });
 
   // Send approve transaction
@@ -74,7 +76,7 @@ export async function approveWethForMarketplace(params: {
     address: WETH_ADDRESS,
     abi: wethAbi,
     functionName: 'approve',
-    args: [params.spender, params.amount],
+    args: [WORK_MARKETPLACE_ADDRESS, amount],
     gas,
     chain: scrollChain,
   });
@@ -97,16 +99,18 @@ export async function getWethAllowance(
   owner: `0x${string}`,
   spender: `0x${string}`
 ): Promise<bigint> {
-  const allowance = await publicClient.readContract({
-    address: WETH_ADDRESS,
-    abi: wethAbi,
-    functionName: 'allowance',
-    args: [owner, spender],
-    authorizationList: [],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+  try {
+    const allowance = await publicClient.readContract({
+      address: WETH_ADDRESS,
+      abi: wethAbi,
+      functionName: 'allowance',
+      args: [owner, spender],
+    });
 
-  return allowance as bigint;
+    return allowance as bigint;
+  } catch (error) {
+    return 0n;
+  }
 }
 
 /**
@@ -116,15 +120,22 @@ export async function getWethAllowance(
  * @returns Balance in token units
  */
 export async function getWethBalance(address: `0x${string}`): Promise<bigint> {
-  const balance = await publicClient.readContract({
-    address: WETH_ADDRESS,
-    abi: wethAbi,
-    functionName: 'balanceOf',
-    args: [address],
-    authorizationList: [],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+  try {
+    const balance = await publicClient.readContract({
+      address: WETH_ADDRESS,
+      abi: wethAbi,
+      functionName: 'balanceOf',
+      args: [address],
+      account: address,
+    });
 
-  return balance as bigint;
+    return balance as bigint;
+  } catch (error) {
+    return 0n;
+  }
+}
+
+export function formatWeth(balance: bigint): string {
+  return formatEther(balance);
 }
 
