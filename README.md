@@ -1,4 +1,4 @@
-# TalentDAO - Web3 Gig Marketplace
+# MintWork - Web3 Gig Marketplace
 
 Decentralized talent marketplace. 80% to workers, 20% to social programs. 100% transparent.
 
@@ -59,10 +59,15 @@ npm install -g vercel
 vercel
 ```
 
-## 📚 Documentation
+## ⚙️ Environment Variables
 
-- [Lemon SDK Integration](./LEMON_INTEGRATION.md)
-- [Logout System](./LOGOUT_SYSTEM.md)
+Create a `.env` file in the root directory:
+
+```env
+VITE_SCROLL_RPC_URL=https://sepolia-rpc.scroll.io
+VITE_WETH_ADDRESS=0x06eFdBFf2a14a7c8E15944D1F4A48F9F95F663A4
+VITE_WORK_MARKETPLACE_ADDRESS=0x88498F482EA125f326b03Df57e3F49e247426e2f
+```
 
 ## 📝 License
 

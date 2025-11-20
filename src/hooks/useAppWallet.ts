@@ -63,11 +63,26 @@ export function useAppWallet() {
       } 
       
       // Fallback: MetaMask (apenas para desenvolvimento local)
-      const ethereum = (window as { ethereum?: { request: (args: { method: string }) => Promise<string[]> } }).ethereum;
+      const ethereum = (window as { ethereum?: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> } }).ethereum;
       if (ethereum) {
+        // Força o MetaMask a mostrar o popup de seleção de conta
+        try {
+          await ethereum.request({
+            method: 'wallet_requestPermissions',
+            params: [{ eth_accounts: {} }],
+          });
+        } catch (permErr) {
+          const permError = permErr as { code?: number };
+          // Se usuário cancelou, não faz fallback
+          if (permError?.code === 4001) {
+            throw permErr;
+          }
+          // Para outros erros (ex: método não suportado), continua
+        }
+
         const accounts = await ethereum.request({
           method: 'eth_requestAccounts',
-        });
+        }) as string[];
         
         if (accounts && accounts[0]) {
           setAddress(accounts[0]);
@@ -85,7 +100,6 @@ export function useAppWallet() {
       if (error?.code === 4001) {
         setError('Conexão cancelada pelo usuário');
       } else {
-        console.error('Erro ao conectar wallet:', err);
         setError(error?.message ?? 'Erro ao conectar carteira');
       }
       setAddress(null);
