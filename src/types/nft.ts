@@ -20,8 +20,8 @@ export const CATEGORY_LOGOS: Record<JobCategory, string> = {
 };
 
 export const COMPANY_LOGOS: Record<string, string> = {
-  Nubank: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Nubank_logo_2021.svg',
-  'MercadoLibre': 'https://upload.wikimedia.org/wikipedia/commons/4/46/MercadoLibre_logo.svg',
-  Rappi: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Rappi_logo.svg',
-  Globant: 'https://upload.wikimedia.org/wikipedia/commons/6/6e/Globant_logo.svg',
+  Nubank: 'https://logo.clearbit.com/nubank.com.br',
+  'MercadoLibre': 'https://logo.clearbit.com/mercadolibre.com',
+  Rappi: 'https://logo.clearbit.com/rappi.com',
+  Globant: 'https://logo.clearbit.com/globant.com',
 };

@@ -52,17 +52,17 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
             {/* Logo Badges */}
             {companyLogo && (
-              <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center p-2.5">
+              <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white border-2 border-white/20 overflow-hidden">
                 <img
                   src={companyLogo}
                   alt={nft.company}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               </div>
             )}
 
             {categoryLogo && (
-              <div className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center p-2.5">
+              <div className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white border-2 border-white/20 overflow-hidden p-2">
                 <img
                   src={categoryLogo}
                   alt={nft.category}

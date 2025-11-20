@@ -42,18 +42,18 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
 
         {/* Company Logo Badge - Top Right */}
         {companyLogo && (
-          <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center p-2">
+          <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white border-2 border-white/20 overflow-hidden">
             <img
               src={companyLogo}
               alt={nft.company}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
         )}
 
         {/* Category Logo Badge - Bottom Right */}
         {categoryLogo && (
-          <div className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center p-2">
+          <div className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white border-2 border-white/20 overflow-hidden p-1.5">
             <img
               src={categoryLogo}
               alt={nft.category}
