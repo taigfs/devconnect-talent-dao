@@ -68,26 +68,39 @@ export interface WorkNFTData {
  */
 export async function fetchNftMetadata(tokenUri: string): Promise<NFTMetadata | null> {
   try {
+    console.log('[WorkNFT] Fetching metadata from URI:', tokenUri.substring(0, 100) + '...');
     let url = tokenUri;
     
-    // Handle IPFS URIs
     if (url.startsWith('ipfs://')) {
       url = url.replace('ipfs://', 'https://ipfs.io/ipfs/');
+      console.log('[WorkNFT] Converted IPFS URI to:', url);
     }
     
-    // Handle data URIs (base64)
     if (url.startsWith('data:application/json;base64,')) {
+      console.log('[WorkNFT] Detected base64 data URI, decoding...');
       const base64Data = url.replace('data:application/json;base64,', '');
       const jsonString = atob(base64Data);
-      return JSON.parse(jsonString);
+      const parsed = JSON.parse(jsonString);
+      console.log('[WorkNFT] Successfully decoded base64 metadata:', { 
+        name: parsed.name, 
+        hasImage: !!parsed.image,
+        attributesCount: parsed.attributes?.length || 0 
+      });
+      return parsed;
     }
     
+    console.log('[WorkNFT] Fetching metadata from HTTP:', url);
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Failed to fetch metadata: ${res.statusText}`);
     }
     
-    return await res.json();
+    const metadata = await res.json();
+    console.log('[WorkNFT] Successfully fetched HTTP metadata:', { 
+      name: metadata.name,
+      hasImage: !!metadata.image 
+    });
+    return metadata;
   } catch (error) {
     console.error('[WorkNFT] Failed to fetch metadata:', error);
     return null;
@@ -99,15 +112,35 @@ export async function fetchNftMetadata(tokenUri: string): Promise<NFTMetadata | 
  * @param owner The wallet address to query
  * @returns Array of NFT data with metadata
  */
+async function getTokenOwner(tokenId: bigint): Promise<`0x${string}` | null> {
+  try {
+    // @ts-expect-error - viem version compatibility issue
+    const owner = await publicClient.readContract({
+      address: WORK_NFT_ADDRESS,
+      abi: [{
+        type: 'function',
+        name: 'ownerOf',
+        stateMutability: 'view',
+        inputs: [{ name: 'tokenId', type: 'uint256' }],
+        outputs: [{ name: 'owner', type: 'address' }],
+      }] as const,
+      functionName: 'ownerOf',
+      args: [tokenId],
+    });
+    return owner as `0x${string}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function getUserWorkNfts(owner: `0x${string}`): Promise<WorkNFTData[]> {
   try {
-    // Get total balance
+    // @ts-expect-error - viem version compatibility issue
     const balance = await publicClient.readContract({
       address: WORK_NFT_ADDRESS,
       abi: workNftAbi,
       functionName: 'balanceOf',
       args: [owner],
-      chain: scrollChain,
     });
 
     const count = Number(balance);
@@ -115,40 +148,46 @@ export async function getUserWorkNfts(owner: `0x${string}`): Promise<WorkNFTData
     
     if (count === 0) return [];
 
-    // Get all token IDs
-    const tokenIds = await Promise.all(
-      Array.from({ length: count }, (_, i) =>
-        publicClient.readContract({
-          address: WORK_NFT_ADDRESS,
-          abi: workNftAbi,
-          functionName: 'tokenOfOwnerByIndex',
-          args: [owner, BigInt(i)],
-          chain: scrollChain,
-        }),
-      ),
-    );
+    console.log('[WorkNFT] Contract does not support tokenOfOwnerByIndex, using alternative approach...');
+    
+    const maxTokenId = 100;
+    const userTokenIds: bigint[] = [];
+    
+    for (let i = 1; i <= maxTokenId; i++) {
+      const tokenId = BigInt(i);
+      const tokenOwner = await getTokenOwner(tokenId);
+      
+      if (tokenOwner && tokenOwner.toLowerCase() === owner.toLowerCase()) {
+        console.log(`[WorkNFT] Found token ${i} owned by user`);
+        userTokenIds.push(tokenId);
+        
+        if (userTokenIds.length >= count) {
+          break;
+        }
+      }
+    }
 
-    // Get token URIs
+    console.log(`[WorkNFT] Found ${userTokenIds.length} tokens for user:`, userTokenIds.map(id => Number(id)));
+
     const tokenUris = await Promise.all(
-      tokenIds.map((tokenId) =>
-        publicClient.readContract({
+      userTokenIds.map((tokenId) => {
+        // @ts-expect-error - viem version compatibility issue
+        return publicClient.readContract({
           address: WORK_NFT_ADDRESS,
           abi: workNftAbi,
           functionName: 'tokenURI',
           args: [tokenId],
-          chain: scrollChain,
-        }),
-      ),
+        });
+      }),
     );
 
-    // Fetch metadata for all NFTs
     const nftsWithMetadata = await Promise.all(
-      tokenIds.map(async (tokenId, index) => {
+      userTokenIds.map(async (tokenId, index) => {
         const tokenUri = tokenUris[index] as string;
         const metadata = await fetchNftMetadata(tokenUri);
         
         return {
-          tokenId: tokenId as bigint,
+          tokenId,
           tokenUri,
           metadata,
         };

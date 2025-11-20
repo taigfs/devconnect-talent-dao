@@ -7,8 +7,9 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Award, Calendar, Building2 } from 'lucide-react';
+import { ExternalLink, Award, Calendar, Building2, Share2 } from 'lucide-react';
 import { WorkNFT, CATEGORY_LOGOS, COMPANY_LOGOS } from '@/types/nft';
+import { getScrollscanAddressUrl } from '@/lib/web3/constants';
 
 interface NFTDetailsModalProps {
   nft: WorkNFT | null;
@@ -136,26 +137,35 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
             {/* Actions */}
             <div className="flex gap-3 pt-2">
+              {nft.contractAddress && (
+                <Button
+                  variant="outline"
+                  className="flex-1 border-primary/30 hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => {
+                    const url = `${getScrollscanAddressUrl(nft.contractAddress as `0x${string}`)}?a=${nft.tokenId}#inventory`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View on ScrollScan
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="flex-1 border-primary/30 hover:bg-primary hover:text-primary-foreground"
-                disabled
+                onClick={() => {
+                  const shareText = `Check out my Work Credential NFT #${nft.tokenId} on MintWork! 🎉`;
+                  if (navigator.share) {
+                    navigator.share({ title: nft.title, text: shareText });
+                  } else {
+                    navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+                  }
+                }}
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                View on Explorer
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 border-primary/30 hover:bg-primary hover:text-primary-foreground"
-                disabled
-              >
+                <Share2 className="w-4 h-4 mr-2" />
                 Share NFT
               </Button>
             </div>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Blockchain integration coming soon
-            </p>
           </div>
         </div>
       </DialogContent>

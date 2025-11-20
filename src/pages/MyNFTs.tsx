@@ -9,6 +9,7 @@ import Navbar from '@/components/Navbar';
 import { AppProvider, useApp } from '@/contexts/AppContext';
 import { useMyWorkNfts } from '@/hooks/useMyWorkNfts';
 import { Link } from 'react-router-dom';
+import { WORK_NFT_ADDRESS } from '@/lib/web3/constants';
 
 const MyNFTsContent = () => {
   const { user } = useApp();
@@ -27,12 +28,10 @@ const MyNFTsContent = () => {
       const metadata = nft.metadata;
       if (!metadata) return null;
 
-      // Detect company from metadata
       const searchText = `${metadata.name || ''} ${metadata.description || ''}`;
       const detectedCompanies = detectCompaniesFromText(searchText);
       const company = detectedCompanies[0]?.name || 'Unknown';
 
-      // Extract category from attributes or default to BACKEND
       const categoryAttr = metadata.attributes?.find((attr) => attr.trait_type === 'Category');
       const category = (categoryAttr?.value as string) || 'BACKEND';
 
@@ -44,6 +43,7 @@ const MyNFTsContent = () => {
         imageUrl: metadata.image || 'https://via.placeholder.com/600x400?text=Work+NFT',
         deliveredAt: new Date().toISOString().split('T')[0],
         tokenId: Number(nft.tokenId),
+        contractAddress: WORK_NFT_ADDRESS,
         description: metadata.description,
       };
     }).filter(Boolean) as WorkNFT[] || [];
