@@ -42,14 +42,14 @@ const Navbar = () => {
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img 
-              src="/Logo.png" 
-              alt="MintWork Logo" 
+          <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+            <img
+              src="/Logo.png"
+              alt="MintWork Logo"
               className="w-8 h-8 object-contain"
             />
             <span className="text-xl font-bold">MintWork</span>
-          </div>
+          </a>
 
           <div className="flex items-center gap-4">
             {user && (

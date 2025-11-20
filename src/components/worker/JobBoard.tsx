@@ -4,8 +4,9 @@ import JobCard from './JobCard';
 import JobDetailsModal from './JobDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Building2, RefreshCw, Briefcase, Filter, TrendingUp, DollarSign } from 'lucide-react';
+import { Building2, RefreshCw, Briefcase, Filter, TrendingUp, DollarSign, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface JobBoardProps {
   onSwitchToRequester?: () => void;
@@ -13,6 +14,7 @@ interface JobBoardProps {
 
 const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
   const { jobs, user, syncJobsFromChain } = useApp();
+  const navigate = useNavigate();
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -78,6 +80,16 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
               </div>
 
               <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => navigate('/my-nfts')}
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all"
+                >
+                  <Trophy className="w-4 h-4" />
+                  <span className="hidden sm:inline">My NFTs</span>
+                </Button>
+
                 <Button
                   onClick={handleRefresh}
                   variant="outline"
