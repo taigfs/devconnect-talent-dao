@@ -2,8 +2,14 @@ import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import JobCard from './JobCard';
 import JobDetailsModal from './JobDetailsModal';
+import { Button } from '@/components/ui/button';
+import { Building2 } from 'lucide-react';
 
-const JobBoard = () => {
+interface JobBoardProps {
+  onSwitchToRequester?: () => void;
+}
+
+const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
   const { jobs, user } = useApp();
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
@@ -20,7 +26,20 @@ const JobBoard = () => {
       {/* Top bar */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">Available Jobs</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Available Jobs</h1>
+            {onSwitchToRequester && (
+              <Button
+                onClick={onSwitchToRequester}
+                variant="outline"
+                size="sm"
+                className="bg-secondary/10 border-secondary/30 hover:bg-secondary/20"
+              >
+                <Building2 className="w-4 h-4 mr-2" />
+                Hire Talent
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

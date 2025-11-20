@@ -16,15 +16,20 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
   const { approveWork, user } = useApp();
   const [approving, setApproving] = useState(false);
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     setApproving(true);
     
-    // Simulate MetaMask approval transaction
-    setTimeout(() => {
-      approveWork(job.id);
-      setApproving(false);
+    try {
+      await approveWork(job.id);
+      // Success - close modal after approval completes
       onClose();
-    }, 2000);
+    } catch (error) {
+      // Error handling is done in AppContext (toast notifications)
+      // Don't close modal if transaction failed or was rejected
+      console.error('Failed to approve work:', error);
+    } finally {
+      setApproving(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -65,7 +70,6 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Job info */}
           <div className="p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-3 mb-3">
               <h3 className="font-bold text-lg flex-1">{job.title}</h3>
@@ -84,8 +88,6 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
               </div>
             </div>
           </div>
-
-          {/* Status-specific content */}
           {job.status === 'OPEN' && (
             <div className="p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-muted-foreground">No applications yet</p>
@@ -136,8 +138,6 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                   </div>
                 </div>
               </div>
-
-              {/* Payment breakdown */}
               <div className="border-t border-border pt-6">
                 <h4 className="font-semibold mb-3">Payment Breakdown</h4>
                 <div className="space-y-2 p-4 bg-muted rounded-lg">

@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppTransaction } from '@/types/Transaction';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
+import { parseUnits } from 'viem';
+import { approveWethForMarketplace } from '@/lib/web3/weth';
+import { createJobOnChain, approveWorkOnChain, getAllJobsBasic, OnChainJobBasic, OnChainJobStatus } from '@/lib/web3/workMarketplace';
+import { WORK_MARKETPLACE_ADDRESS, getScrollscanTxUrl } from '@/lib/web3/constants';
+import { formatUnits } from 'viem';
 
 export type UserRole = 'worker' | 'requester' | null;
 export type JobStatus = 'OPEN' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED';
@@ -41,9 +47,19 @@ interface AppContextType {
   connectWallet: (role: UserRole, wallet: string) => void;
   completeKYC: (data: Partial<User>) => void;
   addJob: (job: Omit<Job, 'id' | 'status'>) => void;
+  createJobWithScroll: (params: {
+    title: string;
+    description: string;
+    reward: number;
+    deadline: string;
+    category: JobCategory;
+    requester: string;
+    tags: string[];
+  }) => Promise<void>;
+  syncJobsFromChain: () => Promise<void>;
   applyForJob: (jobId: number) => void;
   submitWork: (jobId: number, link: string) => void;
-  approveWork: (jobId: number) => void;
+  approveWork: (jobId: number) => Promise<void>;
   depositWithLemon: (amount: number) => Promise<void>;
   logout: () => void;
   showCompletionAnimation: boolean;
@@ -177,7 +193,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const connectWallet = (role: UserRole, wallet: string) => {
     setState(prev => {
       const existingUser = prev.users[wallet];
-      const shouldResetBalance = !existingUser || existingUser.role !== role;
+      const existingBalance = prev.balances[wallet];
+      
+      // CORREÇÃO: Só definir saldo inicial se a wallet ainda não tem saldo registrado
+      // Se já existe saldo (de depósitos anteriores), mantém ele
+      const initialBalance = existingBalance !== undefined 
+        ? existingBalance  // Mantém saldo existente
+        : (role === 'requester' ? 10000 : 0);  // Saldo inicial apenas para wallets novas
       
       return {
         ...prev,
@@ -193,9 +215,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         },
         balances: {
           ...prev.balances,
-          [wallet]: shouldResetBalance 
-            ? (role === 'requester' ? 10000 : 0)
-            : prev.balances[wallet]
+          [wallet]: initialBalance
         }
       };
     });
@@ -316,43 +336,253 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const approveWork = (jobId: number) => {
+  /**
+   * Map on-chain job status to UI job status
+   */
+  const mapOnChainStatusToUI = (
+    onChainStatus: OnChainJobStatus,
+    worker: string
+  ): JobStatus => {
+    // 0 = Created
+    if (onChainStatus === 0) {
+      // If no worker, it's OPEN. If worker exists, it's IN_PROGRESS
+      return worker === '0x0000000000000000000000000000000000000000' ? 'OPEN' : 'IN_PROGRESS';
+    }
+    // 1 = Submitted
+    if (onChainStatus === 1) return 'SUBMITTED';
+    // 2 = Paid (completed)
+    if (onChainStatus === 2) return 'COMPLETED';
+    // 3 = Cancelled - treat as OPEN for UI purposes (or could be hidden)
+    return 'OPEN';
+  };
+
+  /**
+   * Sync jobs from Scroll blockchain
+   * Fetches all on-chain jobs and merges with local state
+   */
+  const syncJobsFromChain = async () => {
+    try {
+      const onChainJobs = await getAllJobsBasic();
+      
+      if (onChainJobs.length === 0) {
+        console.log('[Scroll] No on-chain jobs found');
+        return;
+      }
+
+      // Map on-chain jobs to UI format
+      const mappedJobs: Job[] = onChainJobs.map((onChainJob) => {
+        const reward = parseFloat(formatUnits(onChainJob.reward, 6)); // Assuming 6 decimals
+        const deadlineDate = new Date(Number(onChainJob.deadline) * 1000);
+        const deadlineStr = deadlineDate.toLocaleDateString();
+
+        return {
+          id: Number(onChainJob.id),
+          title: onChainJob.title,
+          description: 'On-chain job - view details on Scroll', // Description not stored on-chain for gas optimization
+          reward,
+          status: mapOnChainStatusToUI(onChainJob.status, onChainJob.worker),
+          category: 'BACKEND' as JobCategory, // Default category (not stored on-chain)
+          requester: 'On-chain Requester', // Simplified (could map wallet to name)
+          requesterWallet: onChainJob.requester,
+          deadline: deadlineStr,
+          tags: ['On-chain'],
+          applicantWallet: onChainJob.worker !== '0x0000000000000000000000000000000000000000' 
+            ? onChainJob.worker 
+            : undefined,
+        };
+      });
+
+      // Merge with existing jobs (prefer on-chain data)
+      setState(prev => {
+        const localJobs = prev.jobs.filter(
+          job => !mappedJobs.find(onChainJob => onChainJob.id === job.id)
+        );
+        
+        return {
+          ...prev,
+          jobs: [...mappedJobs, ...localJobs],
+        };
+      });
+
+      console.log(`[Scroll] Synced ${mappedJobs.length} jobs from chain`);
+      
+    } catch (error) {
+      console.error('[Scroll] Failed to sync jobs:', error);
+      // Don't throw - keep local jobs if sync fails
+    }
+  };
+
+  const createJobWithScroll = async (params: {
+    title: string;
+    description: string;
+    reward: number;
+    deadline: string;
+    category: JobCategory;
+    requester: string;
+    tags: string[];
+  }) => {
+    if (!user) throw new Error('No user connected');
+
+    try {
+      // 1. Convert reward to token units (assuming 6 decimals for USDC/WETH)
+      const rewardInTokens = parseUnits(params.reward.toString(), 6);
+
+      // 2. Convert deadline string to timestamp (simplified: add 7 days from now)
+      // TODO: Parse deadline string properly (e.g., "3 days", "1 week")
+      const deadlineTimestamp = BigInt(Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60);
+
+      // 3. Approve WETH -> Marketplace
+      toast.info('Approving WETH...', { description: 'Please confirm in MetaMask' });
+      
+      const approveResult = await approveWethForMarketplace({
+        spender: WORK_MARKETPLACE_ADDRESS,
+        amount: rewardInTokens,
+      });
+
+      toast.success('WETH Approved!', {
+        description: `Tx: ${approveResult.hash.slice(0, 10)}...`,
+        action: {
+          label: 'View',
+          onClick: () => window.open(getScrollscanTxUrl(approveResult.hash), '_blank'),
+        },
+      });
+
+      // 4. Create job on-chain
+      toast.info('Creating job on Scroll...', { description: 'Please confirm in MetaMask' });
+
+      const createResult = await createJobOnChain({
+        rewardInTokens,
+        deadline: deadlineTimestamp,
+        title: params.title,
+        description: params.description,
+      });
+
+      toast.success('Job created on Scroll!', {
+        description: `Job ID: ${createResult.jobId}`,
+        action: {
+          label: 'View on ScrollScan',
+          onClick: () => window.open(getScrollscanTxUrl(createResult.hash), '_blank'),
+        },
+      });
+
+      // 5. Add job to local state (for UI consistency)
+      const newJob: Job = {
+        id: createResult.jobId || Date.now(),
+        title: params.title,
+        description: params.description,
+        reward: params.reward,
+        status: 'OPEN',
+        category: params.category,
+        requester: params.requester,
+        requesterWallet: user.wallet,
+        deadline: params.deadline,
+        tags: params.tags,
+      };
+
+      setState(prev => ({
+        ...prev,
+        jobs: [newJob, ...prev.jobs],
+        balances: {
+          ...prev.balances,
+          [user.wallet]: prev.balances[user.wallet] - params.reward,
+        },
+      }));
+
+      // 6. Register transaction
+      addTransaction({
+        user: user.wallet,
+        type: 'job_creation',
+        amount: params.reward,
+        jobId: newJob.id,
+        metadata: { title: params.title, onChain: true, txHash: createResult.hash },
+      });
+
+    } catch (error: unknown) {
+      console.error('[Scroll] createJob failed', error);
+      
+      const errorObj = error as { message?: string; code?: number };
+      
+      // User rejected transaction
+      if (errorObj?.message?.includes('User rejected') || errorObj?.code === 4001) {
+        toast.error('Transaction cancelled', { description: 'You rejected the transaction' });
+      } else {
+        toast.error('Failed to create job on Scroll', {
+          description: errorObj?.message || 'Please try again',
+        });
+      }
+      
+      throw error;
+    }
+  };
+
+  const approveWork = async (jobId: number) => {
     const job = jobs.find(j => j.id === jobId);
     if (!job || !job.applicantWallet || !user) return;
 
     const paymentAmount = job.reward * 0.8;
 
-    setState(prev => ({
-      ...prev,
-      jobs: prev.jobs.map(j => 
-        j.id === jobId 
-          ? { ...j, status: 'COMPLETED' as JobStatus }
-          : j
-      ),
-      balances: {
-        ...prev.balances,
-        [job.applicantWallet]: (prev.balances[job.applicantWallet] || 0) + paymentAmount
-      }
-    }));
-    
-    // Registrar transação de aprovação (pelo requester)
-    addTransaction({
-      user: user.wallet,
-      type: 'job_approval',
-      jobId,
-      metadata: { title: job.title, worker: job.applicantWallet }
-    });
+    try {
+      // 1. Approve work on-chain (releases WETH payment + mints NFT)
+      toast.info('Approving work on Scroll...', { description: 'Please confirm in MetaMask' });
 
-    // Registrar transação de pagamento (para o worker)
-    addTransaction({
-      user: job.applicantWallet,
-      type: 'payment_release',
-      amount: paymentAmount,
-      jobId,
-      metadata: { title: job.title, reward: job.reward }
-    });
-    
-    setShowCompletionAnimation(true);
+      const { hash } = await approveWorkOnChain(jobId);
+
+      toast.success('Work approved on Scroll!', {
+        description: 'Payment released + NFT minted',
+        action: {
+          label: 'View on ScrollScan',
+          onClick: () => window.open(getScrollscanTxUrl(hash), '_blank'),
+        },
+      });
+
+      // 2. Update local state (after on-chain success)
+      setState(prev => ({
+        ...prev,
+        jobs: prev.jobs.map(j => 
+          j.id === jobId 
+            ? { ...j, status: 'COMPLETED' as JobStatus }
+            : j
+        ),
+        balances: {
+          ...prev.balances,
+          [job.applicantWallet]: (prev.balances[job.applicantWallet] || 0) + paymentAmount
+        }
+      }));
+      
+      // 3. Register transactions
+      addTransaction({
+        user: user.wallet,
+        type: 'job_approval',
+        jobId,
+        metadata: { title: job.title, worker: job.applicantWallet, onChain: true, txHash: hash }
+      });
+
+      addTransaction({
+        user: job.applicantWallet,
+        type: 'payment_release',
+        amount: paymentAmount,
+        jobId,
+        metadata: { title: job.title, reward: job.reward, onChain: true, txHash: hash }
+      });
+      
+      setShowCompletionAnimation(true);
+
+    } catch (error: unknown) {
+      console.error('[Scroll] approveWork failed', error);
+      
+      const errorObj = error as { message?: string; code?: number };
+      
+      // User rejected transaction
+      if (errorObj?.message?.includes('User rejected') || errorObj?.code === 4001) {
+        toast.error('Transaction cancelled', { description: 'You rejected the transaction' });
+      } else {
+        toast.error('Failed to approve work on Scroll', {
+          description: errorObj?.message || 'Please try again',
+        });
+      }
+      
+      throw error;
+    }
   };
 
   const depositWithLemon = async (amount: number) => {
@@ -400,6 +630,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
+  // Optional: Sync jobs from chain when user connects
+  // useEffect(() => {
+  //   if (user) {
+  //     syncJobsFromChain().catch(console.error);
+  //   }
+  // }, [user]);
+
   return (
     <AppContext.Provider value={{
       user,
@@ -409,6 +646,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       connectWallet,
       completeKYC,
       addJob,
+      createJobWithScroll,
+      syncJobsFromChain,
       applyForJob,
       submitWork,
       approveWork,

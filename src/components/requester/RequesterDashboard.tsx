@@ -31,7 +31,6 @@ const RequesterDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top bar */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -47,7 +46,6 @@ const RequesterDashboard = () => {
         </div>
       </div>
 
-      {/* Jobs list */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {myJobs.length === 0 ? (
           <div className="text-center py-12">
@@ -141,7 +139,6 @@ const RequesterDashboard = () => {
         )}
       </div>
 
-      {/* Modals */}
       <PostJobModal
         open={showPostJob}
         onClose={() => setShowPostJob(false)}

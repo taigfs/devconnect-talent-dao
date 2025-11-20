@@ -9,7 +9,7 @@ interface TransactionHistoryModalProps {
 }
 
 const TransactionHistoryModal = ({ open, onClose }: TransactionHistoryModalProps) => {
-  const { transactions } = useApp();
+  const { transactions, user } = useApp();
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -25,7 +25,7 @@ const TransactionHistoryModal = ({ open, onClose }: TransactionHistoryModalProps
         </DialogHeader>
 
         <div className="mt-4">
-          <TransactionHistory transactions={transactions} />
+          <TransactionHistory transactions={transactions} user={user} />
         </div>
       </DialogContent>
     </Dialog>

@@ -14,12 +14,8 @@ import { toast } from 'sonner';
 import DepositModal from '@/components/DepositModal';
 import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 
-interface NavbarProps {
-  currentView: 'board' | 'dashboard';
-  onViewChange: (view: 'board' | 'dashboard') => void;
-}
-
-const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
+// Navbar não precisa mais de props, apenas renderiza com base no contexto
+const Navbar = () => {
   const { user, logout, balance, depositWithLemon } = useApp();
   const { disconnect } = useAppWallet();
   const [copied, setCopied] = useState(false);

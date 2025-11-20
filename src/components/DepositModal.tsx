@@ -70,7 +70,6 @@ const DepositModal = ({ open, onClose, onDeposit }: DepositModalProps) => {
         </DialogHeader>
 
         <div className="space-y-4 pt-4">
-          {/* Info banner */}
           <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm text-yellow-300">
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p>
@@ -78,7 +77,6 @@ const DepositModal = ({ open, onClose, onDeposit }: DepositModalProps) => {
             </p>
           </div>
 
-          {/* Amount input */}
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (USDC)</Label>
             <div className="relative">
@@ -105,8 +103,6 @@ const DepositModal = ({ open, onClose, onDeposit }: DepositModalProps) => {
               </p>
             )}
           </div>
-
-          {/* Quick amounts */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Quick amounts:</Label>
             <div className="flex gap-2">
@@ -124,8 +120,6 @@ const DepositModal = ({ open, onClose, onDeposit }: DepositModalProps) => {
               ))}
             </div>
           </div>
-
-          {/* Deposit button */}
           <Button
             onClick={handleDeposit}
             disabled={isDepositing || !amount}

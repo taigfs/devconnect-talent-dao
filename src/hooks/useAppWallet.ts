@@ -72,7 +72,12 @@ export function useAppWallet() {
             params: [{ eth_accounts: {} }],
           });
         } catch (permErr) {
-          // Se falhar ao pedir permissões, tenta sem forçar
+          const permError = permErr as { code?: number };
+          // Se usuário cancelou, não faz fallback
+          if (permError?.code === 4001) {
+            throw permErr;
+          }
+          // Para outros erros (ex: método não suportado), continua
           console.log('Fallback para eth_requestAccounts');
         }
 

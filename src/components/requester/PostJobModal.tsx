@@ -15,7 +15,7 @@ interface PostJobModalProps {
 }
 
 const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
-  const { addJob, user, balance } = useApp();
+  const { createJobWithScroll, user, balance } = useApp();
   const [posting, setPosting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,13 +31,13 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
   const isFormValid = formData.title && formData.description && formData.reward && 
                       formData.category && formData.deadline && !insufficientBalance;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPosting(true);
 
-    // Simulate MetaMask popup and transaction
-    setTimeout(() => {
-      addJob({
+    try {
+      // Create job on Scroll Sepolia
+      await createJobWithScroll({
         title: formData.title,
         description: formData.description,
         reward: parseInt(formData.reward),
@@ -60,9 +60,12 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
           deadline: ''
         });
         onClose();
-        toast.success('Job posted successfully!');
       }, 2000);
-    }, 2000);
+    } catch (error) {
+      console.error('Failed to create job:', error);
+      setPosting(false);
+      // Error toast already shown in createJobWithScroll
+    }
   };
 
   if (success) {

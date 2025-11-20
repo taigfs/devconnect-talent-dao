@@ -12,14 +12,14 @@ import {
   Banknote,
   Sparkles
 } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
+import { User } from '@/contexts/AppContext';
 
 interface TransactionHistoryProps {
   transactions: AppTransaction[];
+  user: User | null;
 }
 
-const TransactionHistory = ({ transactions }: TransactionHistoryProps) => {
-  const { user } = useApp();
+const TransactionHistory = ({ transactions, user }: TransactionHistoryProps) => {
 
   if (!user) {
     return (
