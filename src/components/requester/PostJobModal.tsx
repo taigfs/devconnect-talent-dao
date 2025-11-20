@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp, JobCategory } from '@/contexts/AppContext';
 import { parseEther } from 'viem';
 import { formatWeth } from '@/lib/web3/weth';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, FlaskConical } from 'lucide-react';
+import { generateRandomJobData } from '@/utils/testDataGenerator';
 
 interface PostJobModalProps {
   open: boolean;
@@ -19,6 +20,7 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
   const { createJobWithScroll, user, wethBalance } = useApp();
   const [posting, setPosting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,6 +28,12 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
     category: '' as JobCategory | '',
     deadline: ''
   });
+
+  // Check for test mode on mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    setIsTestMode(searchParams.get('test') === 'true');
+  }, []);
 
   let rewardInWei: bigint | null = null;
   try {
@@ -38,6 +46,11 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
   const insufficientBalance = rewardInWei !== null && wethBalance !== undefined ? rewardInWei > wethBalance : false;
   const isFormValid = formData.title && formData.description && hasValidReward && 
                       formData.category && formData.deadline;
+
+  const handleFillTestData = () => {
+    const testData = generateRandomJobData();
+    setFormData(testData);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +105,21 @@ const PostJobModal = ({ open, onClose }: PostJobModalProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl bg-card border-primary/20 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Post New Job</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-bold">Post New Job</DialogTitle>
+            {isTestMode && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleFillTestData}
+                className="ml-4 text-xs"
+              >
+                <FlaskConical className="w-3 h-3 mr-1" />
+                Fill Test Data
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
