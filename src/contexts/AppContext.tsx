@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import { parseEther, formatEther, formatUnits } from 'viem';
 import { approveWethForMarketplace, getWethBalance, getWethAllowance } from '@/lib/web3/weth';
-import { createJobOnChain, approveWorkOnChain, getAllJobsBasic, OnChainJobBasic, OnChainJobStatus } from '@/lib/web3/workMarketplace';
+import { createJobOnChain, approveWorkOnChain, getAllJobsBasic, OnChainJobBasic, OnChainJobStatus, takeJobOnChain, submitWorkOnChain } from '@/lib/web3/workMarketplace';
 import { WORK_MARKETPLACE_ADDRESS, getScrollscanTxUrl } from '@/lib/web3/constants';
 
 export type UserRole = 'worker' | 'requester' | null;
@@ -57,8 +57,8 @@ interface AppContextType {
     tags: string[];
   }) => Promise<void>;
   syncJobsFromChain: (force?: boolean) => Promise<void>;
-  applyForJob: (jobId: number) => void;
-  submitWork: (jobId: number, link: string) => void;
+  applyForJob: (jobId: number) => Promise<void>;
+  submitWork: (jobId: number, link: string) => Promise<void>;
   approveWork: (jobId: number) => Promise<void>;
   depositWithLemon: (amount: number) => Promise<void>;
   refreshWethBalance: () => Promise<void>;
@@ -235,58 +235,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const applyForJob = (jobId: number) => {
-    if (!user) return;
+  const applyForJob = async (jobId: number) => {
+    if (!user) {
+      throw new Error('No user connected');
+    }
     
     const job = jobs.find(j => j.id === jobId);
-    
-    setState(prev => ({
-      ...prev,
-      jobs: prev.jobs.map(job => 
-        job.id === jobId 
-          ? { ...job, status: 'IN_PROGRESS' as JobStatus, applicantWallet: user.wallet }
-          : job
-      )
-    }));
+    if (!job) {
+      throw new Error('Job not found');
+    }
 
-    // Registrar transação
-    if (job) {
+    try {
+      // 1. Apply for job on-chain (takeJob transaction)
+      toast.info('Taking job on Scroll...', { description: 'Please confirm in MetaMask' });
+
+      const { hash } = await takeJobOnChain(jobId);
+
+      toast.success('Job accepted on blockchain!', {
+        description: 'You can now start working on it',
+        action: {
+          label: 'View on ScrollScan',
+          onClick: () => window.open(getScrollscanTxUrl(hash), '_blank'),
+        },
+      });
+
+      // 2. Update local state (after on-chain success)
+      setState(prev => ({
+        ...prev,
+        jobs: prev.jobs.map(j => 
+          j.id === jobId 
+            ? { ...j, status: 'IN_PROGRESS' as JobStatus, applicantWallet: user.wallet }
+            : j
+        )
+      }));
+
+      // 3. Register transaction
       addTransaction({
         user: user.wallet,
         type: 'job_application',
         jobId,
-        metadata: { title: job.title }
+        metadata: { title: job.title, onChain: true, txHash: hash }
       });
+
+    } catch (error: unknown) {
+      console.error('[Scroll] applyForJob failed', error);
+      
+      const errorObj = error as { message?: string; code?: number };
+      
+      // User rejected transaction
+      if (errorObj?.message?.includes('User rejected') || errorObj?.code === 4001) {
+        toast.error('Transaction cancelled', { description: 'You rejected the transaction' });
+      } else {
+        toast.error('Failed to apply for job on Scroll', {
+          description: errorObj?.message || 'Please try again',
+        });
+      }
+      
+      throw error;
     }
   };
 
-  const submitWork = (jobId: number, link: string) => {
-    if (!user) return;
+  const submitWork = async (jobId: number, link: string) => {
+    if (!user) {
+      throw new Error('No user connected');
+    }
     
     const job = jobs.find(j => j.id === jobId);
-    
-    setState(prev => ({
-      ...prev,
-      jobs: prev.jobs.map(job => 
-        job.id === jobId 
-          ? { 
-              ...job, 
-              status: 'SUBMITTED' as JobStatus, 
-              submissionLink: link,
-              submittedAt: new Date().toISOString()
-            }
-          : job
-      )
-    }));
+    if (!job) {
+      throw new Error('Job not found');
+    }
 
-    // Registrar transação
-    if (job) {
+    try {
+      // 1. Submit work on-chain
+      toast.info('Submitting work on Scroll...', { description: 'Please confirm in MetaMask' });
+
+      const { hash } = await submitWorkOnChain(jobId, link);
+
+      toast.success('Work submitted on blockchain!', {
+        description: 'Awaiting requester approval',
+        action: {
+          label: 'View on ScrollScan',
+          onClick: () => window.open(getScrollscanTxUrl(hash), '_blank'),
+        },
+      });
+
+      // 2. Update local state (after on-chain success)
+      setState(prev => ({
+        ...prev,
+        jobs: prev.jobs.map(j => 
+          j.id === jobId 
+            ? { 
+                ...j, 
+                status: 'SUBMITTED' as JobStatus, 
+                submissionLink: link,
+                submittedAt: new Date().toISOString()
+              }
+            : j
+        )
+      }));
+
+      // 3. Register transaction
       addTransaction({
         user: user.wallet,
         type: 'job_submission',
         jobId,
-        metadata: { title: job.title, link }
+        metadata: { title: job.title, link, onChain: true, txHash: hash }
       });
+
+    } catch (error: unknown) {
+      console.error('[Scroll] submitWork failed', error);
+      
+      const errorObj = error as { message?: string; code?: number };
+      
+      // User rejected transaction
+      if (errorObj?.message?.includes('User rejected') || errorObj?.code === 4001) {
+        toast.error('Transaction cancelled', { description: 'You rejected the transaction' });
+      } else {
+        toast.error('Failed to submit work on Scroll', {
+          description: errorObj?.message || 'Please try again',
+        });
+      }
+      
+      throw error;
     }
   };
 
