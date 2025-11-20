@@ -34,8 +34,8 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
       }}
       onClick={() => onViewDetails(nft)}
     >
-      {/* NFT Image - Portrait aspect ratio, not stretched */}
-      <div className="relative w-full aspect-[3/4] overflow-hidden flex items-center justify-center">
+      {/* NFT Image - Portrait aspect ratio, not stretched - 30% less tall */}
+      <div className="relative w-full aspect-[3/2.8] overflow-hidden flex items-center justify-center">
         <img
           src={nft.imageUrl}
           alt={nft.title}
@@ -50,9 +50,9 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
           }}
         />
 
-        {/* Company Logo Badge - Top Right */}
+        {/* Company Logo Badge - Top Right - 2x bigger */}
         {companyLogo && (
-          <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white border-2 border-white/20 overflow-hidden">
+          <div className="absolute top-3 right-3 w-20 h-20 rounded-full bg-white border-2 border-white/20 overflow-hidden shadow-lg">
             <img
               src={companyLogo}
               alt={nft.company}
@@ -61,9 +61,9 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
           </div>
         )}
 
-        {/* Category Logo Badge - Bottom Right */}
+        {/* Category Logo Badge - Bottom Right - 2x bigger */}
         {categoryLogo && (
-          <div className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white border-2 border-white/20 overflow-hidden p-1.5">
+          <div className="absolute bottom-3 right-3 w-20 h-20 rounded-full bg-white border-2 border-white/20 overflow-hidden p-3 shadow-lg">
             <img
               src={categoryLogo}
               alt={nft.category}
@@ -87,15 +87,17 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
 
         {/* Category Badge */}
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+          <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-black/40 backdrop-blur-sm">
             {nft.category}
           </Badge>
         </div>
 
         {/* Delivery Date */}
-        <p className="text-xs text-muted-foreground">
-          Delivered on {formattedDate}
-        </p>
+        <div className="inline-block">
+          <Badge variant="outline" className="text-xs border-white/20 text-white/90 bg-black/40 backdrop-blur-sm">
+            Delivered on {formattedDate}
+          </Badge>
+        </div>
       </CardContent>
 
       {/* Footer */}

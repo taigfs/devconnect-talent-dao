@@ -98,9 +98,6 @@ const MyNFTsContent = () => {
           </Button>
 
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-              <Trophy className="w-8 h-8 text-primary" />
-            </div>
             <div>
               <h1 className="text-4xl font-bold text-white">My Work Credentials</h1>
               <p className="text-muted-foreground mt-1">
@@ -108,28 +105,6 @@ const MyNFTsContent = () => {
               </p>
             </div>
           </div>
-
-          {user && !isLoading && nfts.length > 0 && (
-            <div className="flex flex-wrap gap-3 mt-6">
-              <Badge
-                variant="outline"
-                className="px-4 py-2 border-primary/30 bg-primary/5 text-white"
-              >
-                <Award className="w-4 h-4 mr-2 text-primary" />
-                Total: {totalNFTs}
-              </Badge>
-
-              {Object.entries(nftsByCategory).map(([category, count]) => (
-                <Badge
-                  key={category}
-                  variant="outline"
-                  className="px-4 py-2 border-primary/20 bg-card/50"
-                >
-                  {category}: {count}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
