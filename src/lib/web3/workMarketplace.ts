@@ -47,9 +47,7 @@ export async function getJobCount(): Promise<number> {
     address: WORK_MARKETPLACE_ADDRESS,
     abi: workMarketplaceAbi,
     functionName: 'nextJobId',
-    authorizationList: [],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+  });
   return Number(result);
 }
 
@@ -73,8 +71,8 @@ export async function getAllJobsBasic(): Promise<OnChainJobBasic[]> {
 
   const multicallResult = await publicClient.multicall({ 
     contracts,
-    authorizationList: [],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    allowFailure: true,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
   return multicallResult

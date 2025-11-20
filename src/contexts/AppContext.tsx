@@ -56,7 +56,7 @@ interface AppContextType {
     requester: string;
     tags: string[];
   }) => Promise<void>;
-  syncJobsFromChain: () => Promise<void>;
+  syncJobsFromChain: (force?: boolean) => Promise<void>;
   applyForJob: (jobId: number) => void;
   submitWork: (jobId: number, link: string) => void;
   approveWork: (jobId: number) => Promise<void>;
@@ -70,97 +70,35 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'talentDAOState';
-
-// Demo accounts
-const DEMO_WORKER_WALLET = '0xAAA...111';
-const DEMO_REQUESTER_WALLET = '0xBBB...222';
+const STORAGE_VERSION_KEY = 'talentDAOStateVersion';
+const CURRENT_VERSION = '2.0'; // Bumped to clear demo data
 
 const getInitialState = () => {
+  const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+  
+  // Clear old data if version mismatch (migration)
+  if (storedVersion !== CURRENT_VERSION) {
+    console.log('[Storage] Version mismatch, clearing demo data...');
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
+  }
+  
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    // Always clear jobs from storage - they should come from blockchain
+    return {
+      ...parsed,
+      jobs: []
+    };
   }
 
-  // Initialize with demo data
+  // Initialize with empty state - jobs will come from blockchain
   return {
     currentUser: null,
-    users: {
-      [DEMO_WORKER_WALLET]: {
-        wallet: DEMO_WORKER_WALLET,
-        role: 'worker' as UserRole,
-        kycCompleted: true,
-        name: 'Bob the Developer',
-        email: 'bob@developer.com',
-        skills: ['Frontend', 'Backend'],
-        balance: 1234
-      },
-      [DEMO_REQUESTER_WALLET]: {
-        wallet: DEMO_REQUESTER_WALLET,
-        role: 'requester' as UserRole,
-        kycCompleted: true,
-        company: 'TechCorp Inc.',
-        email: 'hiring@techcorp.com',
-        website: 'https://techcorp.com',
-        balance: 10000
-      }
-    },
-    jobs: [
-      {
-        id: 1,
-        title: "Smart Contract Audit Review",
-        description: "Review and audit our DeFi smart contracts for security vulnerabilities. Requires Solidity expertise and security best practices knowledge.",
-        reward: 800,
-        status: "OPEN",
-        category: "BACKEND",
-        requester: "DeFi Protocol Inc",
-        requesterWallet: DEMO_REQUESTER_WALLET,
-        deadline: "3 days",
-        tags: ["Solidity", "Security"]
-      },
-      {
-        id: 2,
-        title: "Landing Page Redesign",
-        description: "Design a modern, Web3-themed landing page for our crypto startup. Should include hero section, features, and call-to-action.",
-        reward: 500,
-        status: "SUBMITTED",
-        category: "DESIGN",
-        requester: "TechCorp Inc.",
-        requesterWallet: DEMO_REQUESTER_WALLET,
-        deadline: "5 days",
-        tags: ["Figma", "Web3"],
-        applicantWallet: DEMO_WORKER_WALLET,
-        submissionLink: "https://figma.com/demo/landing-page-redesign",
-        submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
-      },
-      {
-        id: 3,
-        title: "React Component Library",
-        description: "Build a comprehensive React component library with TypeScript. Must include documentation and Storybook integration.",
-        reward: 1200,
-        status: "IN_PROGRESS",
-        category: "FRONTEND",
-        requester: "TechCorp Inc.",
-        requesterWallet: DEMO_REQUESTER_WALLET,
-        deadline: "1 week",
-        tags: ["React", "TypeScript"],
-        applicantWallet: DEMO_WORKER_WALLET
-      },
-      {
-        id: 4,
-        title: "Marketing Campaign Strategy",
-        description: "Create a comprehensive marketing strategy for our NFT launch. Include social media plan, influencer outreach, and content calendar.",
-        reward: 600,
-        status: "OPEN",
-        category: "MARKETING",
-        requester: "NFT Collective",
-        deadline: "4 days",
-        tags: ["Marketing", "NFT", "Social"]
-      }
-    ],
-    balances: {
-      [DEMO_WORKER_WALLET]: 1234,
-      [DEMO_REQUESTER_WALLET]: 7700 // 10000 - 800 - 500 - 1200 + 200 (reserved for open job)
-    },
+    users: {},
+    jobs: [],
+    balances: {},
     transactions: []
   };
 };
@@ -169,6 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [state, setState] = useState(getInitialState);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [wethBalance, setWethBalance] = useState<bigint>(0n);
+  const lastSyncTimeRef = React.useRef<number>(0);
+  const SYNC_COOLDOWN_MS = 30000; // 30 seconds between syncs
 
   const user = state.currentUser ? state.users[state.currentUser] : null;
   const jobs = state.jobs;
@@ -374,54 +314,79 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
    * Sync jobs from Scroll blockchain
    * Fetches all on-chain jobs and merges with local state
    */
-  const syncJobsFromChain = async () => {
+  const syncJobsFromChain = useCallback(async (force = false) => {
+    // Rate limiting: prevent syncing too frequently
+    const now = Date.now();
+    if (!force && now - lastSyncTimeRef.current < SYNC_COOLDOWN_MS) {
+      console.log('[Scroll] Skipping sync (cooldown active)');
+      return;
+    }
+    
+    lastSyncTimeRef.current = now;
+    
     try {
+      console.log('[Scroll] Syncing jobs from blockchain...');
       const onChainJobs = await getAllJobsBasic();
       
+      console.log('[Scroll] Found', onChainJobs.length, 'on-chain jobs:', onChainJobs);
+      
       if (onChainJobs.length === 0) {
+        console.log('[Scroll] No on-chain jobs found');
+        toast.info('No jobs on blockchain yet', {
+          description: 'Post the first job to get started!'
+        });
+        // Clear any local jobs since we only want blockchain jobs
+        setState(prev => ({
+          ...prev,
+          jobs: []
+        }));
         return;
       }
 
       // Map on-chain jobs to UI format
       const mappedJobs: Job[] = onChainJobs.map((onChainJob) => {
-        const reward = parseFloat(formatUnits(onChainJob.reward, 6)); // Assuming 6 decimals
+        const reward = parseFloat(formatUnits(onChainJob.reward, 18)); // WETH has 18 decimals
         const deadlineDate = new Date(Number(onChainJob.deadline) * 1000);
-        const deadlineStr = deadlineDate.toLocaleDateString();
+        const now = new Date();
+        const diffMs = deadlineDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const deadlineStr = diffDays > 0 ? `${diffDays} days` : 'Expired';
 
         return {
           id: Number(onChainJob.id),
           title: onChainJob.title,
-          description: 'On-chain job - view details on Scroll', // Description not stored on-chain for gas optimization
+          description: 'On-chain job - view details for more info', // Description not stored on-chain for gas optimization
           reward,
           status: mapOnChainStatusToUI(onChainJob.status, onChainJob.worker),
           category: 'BACKEND' as JobCategory, // Default category (not stored on-chain)
           requester: 'On-chain Requester', // Simplified (could map wallet to name)
           requesterWallet: onChainJob.requester,
           deadline: deadlineStr,
-          tags: ['On-chain'],
+          tags: ['On-chain', 'Blockchain'],
           applicantWallet: onChainJob.worker !== '0x0000000000000000000000000000000000000000' 
             ? onChainJob.worker 
             : undefined,
         };
       });
 
-      // Merge with existing jobs (prefer on-chain data)
-      setState(prev => {
-        const localJobs = prev.jobs.filter(
-          job => !mappedJobs.find(onChainJob => onChainJob.id === job.id)
-        );
-        
-        return {
-          ...prev,
-          jobs: [...mappedJobs, ...localJobs],
-        };
-      });
+      console.log('[Scroll] Mapped jobs:', mappedJobs);
 
+      // Replace all jobs with on-chain jobs (no local jobs)
+      setState(prev => ({
+        ...prev,
+        jobs: mappedJobs,
+      }));
+
+      toast.success(`Loaded ${onChainJobs.length} job(s) from blockchain!`);
       
     } catch (error) {
+      console.error('[Scroll] Failed to sync jobs from chain:', error);
+      toast.error('Failed to sync jobs from blockchain', {
+        description: 'Showing local jobs only'
+      });
       // Silently fail - keep local jobs if sync fails
     }
-  };
+  }, []);
 
   const createJobWithScroll = async (params: {
     title: string;
