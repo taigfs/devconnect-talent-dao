@@ -308,18 +308,35 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
           )}
 
           {job.status === 'COMPLETED' && (
-            <div className="p-8 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 rounded-xl border-2 border-primary/20 text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <div className="p-8 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 rounded-xl border-2 border-primary/20 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <div className="text-4xl">✓</div>
               </div>
-              <p className="font-bold text-primary text-xl mb-2">Job Completed!</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Payment has been released to the worker
-              </p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/50 rounded-lg border border-primary/20">
-                <span className="text-xs text-muted-foreground">Worker received:</span>
-                <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(8)} WETH</span>
+              <div>
+                <p className="font-bold text-primary text-xl mb-2">Job Completed!</p>
+                <p className="text-sm text-muted-foreground">
+                  Payment has been released
+                </p>
               </div>
+              
+              <div className="space-y-2 max-w-md mx-auto">
+                <div className="flex items-center justify-between px-4 py-2 bg-background/50 rounded-lg border border-primary/20">
+                  <span className="text-xs text-muted-foreground">Worker received:</span>
+                  <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(8)} WETH</span>
+                </div>
+                
+                <div className="flex items-center justify-between px-4 py-2 bg-background/50 rounded-lg border border-border/50">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <span>Social Programs:</span>
+                    <span className="text-base">🥰</span>
+                  </span>
+                  <span className="font-bold text-muted-foreground">{(job.reward * 0.2).toFixed(8)} WETH</span>
+                </div>
+              </div>
+              
+              <p className="text-xs text-muted-foreground/70 pt-2">
+                Thank you for supporting social impact! 💚
+              </p>
             </div>
           )}
         </div>
