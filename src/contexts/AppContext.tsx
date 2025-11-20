@@ -422,13 +422,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         const deadlineStr = diffDays > 0 ? `${diffDays} days` : 'Expired';
 
+        // Extract category from title using [CATEGORY:XXX] tag
+        const categoryMatch = onChainJob.title.match(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/i);
+        const extractedCategory = categoryMatch ? categoryMatch[1].toUpperCase() as JobCategory : 'BACKEND';
+
+        // Clean title (remove category tag if present)
+        const cleanTitle = onChainJob.title.replace(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/gi, '').trim();
+
         return {
           id: Number(onChainJob.id),
-          title: onChainJob.title,
+          title: cleanTitle,
           description: 'On-chain job - view details for more info', // Description not stored on-chain for gas optimization
           reward,
           status: mapOnChainStatusToUI(onChainJob.status, onChainJob.worker),
-          category: 'BACKEND' as JobCategory, // Default category (not stored on-chain)
+          category: extractedCategory,
           requester: 'On-chain Requester', // Simplified (could map wallet to name)
           requesterWallet: onChainJob.requester,
           deadline: deadlineStr,
@@ -510,10 +517,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // 4. Create job on-chain
       toast.info('Creating job on Scroll...', { description: 'Please confirm in MetaMask' });
 
+      // Include category as a tag in the title for on-chain storage
+      const titleWithCategory = `${params.title} [CATEGORY:${params.category}]`;
+      
       const createResult = await createJobOnChain({
         rewardInTokens: rewardInWei,
         deadline: deadlineTimestamp,
-        title: params.title,
+        title: titleWithCategory,
         description: params.description,
       });
 

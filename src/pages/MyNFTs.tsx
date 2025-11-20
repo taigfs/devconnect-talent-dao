@@ -38,16 +38,23 @@ const MyNFTsContent = () => {
       console.log('[MyNFTs] Full metadata:', metadata);
       console.log('[MyNFTs] Metadata attributes:', metadata.attributes);
       
-      // Log each attribute to see the exact structure
-      metadata.attributes?.forEach((attr, idx) => {
-        console.log(`[MyNFTs] Attribute ${idx}:`, JSON.stringify(attr));
-      });
+      // Extract category from metadata name (title) using [CATEGORY:XXX] tag
+      const categoryMatch = metadata.name.match(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/i);
+      let extractedCategory = categoryMatch ? categoryMatch[1].toUpperCase() : null;
       
-      const categoryAttr = metadata.attributes?.find((attr) => attr.trait_type === 'Category');
-      console.log('[MyNFTs] Found category attribute:', categoryAttr);
+      // Fallback: try to find category in attributes
+      if (!extractedCategory) {
+        metadata.attributes?.forEach((attr, idx) => {
+          console.log(`[MyNFTs] Attribute ${idx}:`, JSON.stringify(attr));
+        });
+        
+        const categoryAttr = metadata.attributes?.find((attr) => attr.trait_type === 'Category');
+        console.log('[MyNFTs] Found category attribute:', categoryAttr);
+        extractedCategory = categoryAttr ? String(categoryAttr.value).toUpperCase() : null;
+      }
       
-      const rawCategory = (categoryAttr?.value as string) || 'BACKEND';
-      console.log('[MyNFTs] Raw category value:', rawCategory);
+      const rawCategory = extractedCategory || 'BACKEND';
+      console.log('[MyNFTs] Extracted category:', rawCategory);
       
       const normalizedCategory = rawCategory.toUpperCase().trim();
       console.log('[MyNFTs] Normalized category:', normalizedCategory);
@@ -61,9 +68,12 @@ const MyNFTsContent = () => {
       const tokenIdNumber = Number(nft.tokenId);
       const imageUrl = getStaticNftImage(tokenIdNumber);
 
+      // Clean title (remove category tag)
+      const cleanTitle = metadata.name.replace(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/gi, '').trim();
+      
       console.log('[MyNFTs] NFT processed:', {
         tokenId: tokenIdNumber,
-        title: metadata.name,
+        title: cleanTitle,
         company,
         category,
         imageUrl,
@@ -71,7 +81,7 @@ const MyNFTsContent = () => {
 
       return {
         id: tokenIdNumber,
-        title: metadata.name || `Work Credential #${tokenIdNumber}`,
+        title: cleanTitle || `Work Credential #${tokenIdNumber}`,
         company,
         category: category as WorkNFT['category'],
         imageUrl, // Use static image
