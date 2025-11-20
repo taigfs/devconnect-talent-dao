@@ -106,7 +106,7 @@ export async function getAllJobsBasic(): Promise<OnChainJobBasic[]> {
  * @returns Transaction hash, jobId (from event), and receipt
  */
 export async function createJobOnChain(params: {
-  rewardInTokens: bigint;   // Amount in token units (e.g., 200000000 for 200 USDC with 6 decimals)
+  rewardInTokens: bigint;   // Amount in token units (e.g., 1000000000000000000 for 1 WETH with 18 decimals)
   deadline: bigint;          // Unix timestamp
   title: string;
   description: string;

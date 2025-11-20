@@ -48,7 +48,7 @@ const LandingPage = ({ onConnect }: LandingPageProps) => {
             <div className="h-12 w-px bg-border hidden md:block" />
             <div>
               <div className="text-2xl font-bold text-primary">2,450</div>
-              <div className="text-sm text-muted-foreground">USDC Locked</div>
+              <div className="text-sm text-muted-foreground">WETH Locked</div>
             </div>
           </div>
         </div>

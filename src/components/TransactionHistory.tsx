@@ -29,8 +29,10 @@ const TransactionHistory = ({ transactions, user }: TransactionHistoryProps) => 
     );
   }
 
-  // Filtrar transações do usuário atual
-  const userTransactions = transactions.filter(tx => tx.user === user.wallet);
+  // Filtrar transações do usuário atual (case-insensitive)
+  const userTransactions = transactions.filter(tx => 
+    tx.user?.toLowerCase() === user.wallet?.toLowerCase()
+  );
 
   if (userTransactions.length === 0) {
     return (
@@ -114,7 +116,7 @@ const TransactionHistory = ({ transactions, user }: TransactionHistoryProps) => 
 
     return (
       <span className={`font-bold font-mono ${color}`}>
-        {sign}${tx.amount.toLocaleString()} USDC
+        {sign}${tx.amount.toLocaleString()} WETH
       </span>
     );
   };
@@ -149,7 +151,7 @@ const TransactionHistory = ({ transactions, user }: TransactionHistoryProps) => 
                     
                     {tx.metadata?.title && (
                       <p className="text-sm text-foreground/90 truncate mb-1">
-                        {tx.metadata.title}
+                        {String(tx.metadata.title)}
                       </p>
                     )}
                     

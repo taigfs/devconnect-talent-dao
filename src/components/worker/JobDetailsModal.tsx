@@ -35,7 +35,7 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
     onClose();
   };
 
-  const isMyJob = job.applicantWallet === user?.wallet;
+  const isMyJob = job.applicantWallet?.toLowerCase() === user?.wallet?.toLowerCase();
   const canApply = job.status === 'OPEN' && !isMyJob;
   const canSubmit = job.status === 'IN_PROGRESS' && isMyJob;
   const isSubmitted = job.status === 'SUBMITTED' && isMyJob;
@@ -67,7 +67,7 @@ const JobDetailsModal = ({ job, open, onClose }: JobDetailsModalProps) => {
               <DollarSign className="w-5 h-5 text-primary" />
               <div>
                 <div className="text-sm text-muted-foreground">Reward</div>
-                <div className="font-bold text-primary">{job.reward} USDC</div>
+                <div className="font-bold text-primary">{job.reward} WETH</div>
               </div>
             </div>
             <div className="flex items-center gap-2">

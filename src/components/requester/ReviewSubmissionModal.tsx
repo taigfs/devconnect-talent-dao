@@ -79,7 +79,7 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2 text-primary font-bold">
                 <DollarSign className="w-4 h-4" />
-                {job.reward} USDC
+                {job.reward} WETH
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />
@@ -142,16 +142,16 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                 <div className="space-y-2 p-4 bg-muted rounded-lg">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Worker (80%)</span>
-                    <span className="font-bold text-primary">{job.reward * 0.8} USDC</span>
+                    <span className="font-bold text-primary">{(job.reward * 0.8).toFixed(4)} WETH</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">DAO Treasury (20%)</span>
-                    <span className="font-bold text-muted-foreground">{job.reward * 0.2} USDC</span>
+                    <span className="text-muted-foreground">Social Programs (20%)</span>
+                    <span className="font-bold text-muted-foreground">{(job.reward * 0.2).toFixed(4)} WETH</span>
                   </div>
                   <div className="h-px bg-border my-2" />
                   <div className="flex justify-between text-lg">
                     <span className="font-bold">Total</span>
-                    <span className="font-bold text-primary">{job.reward} USDC</span>
+                    <span className="font-bold text-primary">{job.reward} WETH</span>
                   </div>
                 </div>
               </div>

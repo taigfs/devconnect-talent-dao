@@ -68,7 +68,7 @@ const JobCard = ({ job, onClick }: JobCardProps) => {
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5 text-primary font-bold bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
             <DollarSign className="w-4 h-4" />
-            <span>{job.reward} USDC</span>
+            <span>{job.reward} WETH</span>
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Clock className="w-4 h-4" />

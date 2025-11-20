@@ -45,10 +45,10 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
     }
   };
 
-  const availableJobs = jobs.filter(job =>
-    job.status === 'OPEN' ||
-    job.status === 'IN_PROGRESS' ||
-    (job.status === 'SUBMITTED' && job.applicantWallet === user?.wallet)
+  const availableJobs = jobs.filter(job => 
+    job.status === 'OPEN' || 
+    job.status === 'IN_PROGRESS' || 
+    (job.status === 'SUBMITTED' && job.applicantWallet?.toLowerCase() === user?.wallet?.toLowerCase())
   );
 
   const openJobs = availableJobs.filter(job => job.status === 'OPEN');
@@ -118,7 +118,7 @@ const JobBoard = ({ onSwitchToRequester }: JobBoardProps) => {
 
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/5 border border-secondary/10">
                 <span className="text-sm font-medium text-secondary">
-                  ${totalRewards.toLocaleString()} Total Rewards
+                  {totalRewards.toFixed(4)} WETH Total Rewards
                 </span>
               </div>
             </div>
