@@ -68,38 +68,25 @@ export interface WorkNFTData {
  */
 export async function fetchNftMetadata(tokenUri: string): Promise<NFTMetadata | null> {
   try {
-    console.log('[WorkNFT] Fetching metadata from URI:', tokenUri.substring(0, 100) + '...');
     let url = tokenUri;
     
     if (url.startsWith('ipfs://')) {
       url = url.replace('ipfs://', 'https://ipfs.io/ipfs/');
-      console.log('[WorkNFT] Converted IPFS URI to:', url);
     }
     
     if (url.startsWith('data:application/json;base64,')) {
-      console.log('[WorkNFT] Detected base64 data URI, decoding...');
       const base64Data = url.replace('data:application/json;base64,', '');
       const jsonString = atob(base64Data);
       const parsed = JSON.parse(jsonString);
-      console.log('[WorkNFT] Successfully decoded base64 metadata:', { 
-        name: parsed.name, 
-        hasImage: !!parsed.image,
-        attributesCount: parsed.attributes?.length || 0 
-      });
       return parsed;
     }
     
-    console.log('[WorkNFT] Fetching metadata from HTTP:', url);
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Failed to fetch metadata: ${res.statusText}`);
     }
     
     const metadata = await res.json();
-    console.log('[WorkNFT] Successfully fetched HTTP metadata:', { 
-      name: metadata.name,
-      hasImage: !!metadata.image 
-    });
     return metadata;
   } catch (error) {
     console.error('[WorkNFT] Failed to fetch metadata:', error);
@@ -144,12 +131,9 @@ export async function getUserWorkNfts(owner: `0x${string}`): Promise<WorkNFTData
     });
 
     const count = Number(balance);
-    console.log(`[WorkNFT] User ${owner} has ${count} NFTs`);
     
     if (count === 0) return [];
 
-    console.log('[WorkNFT] Contract does not support tokenOfOwnerByIndex, using alternative approach...');
-    
     const maxTokenId = 100;
     const userTokenIds: bigint[] = [];
     
@@ -158,7 +142,6 @@ export async function getUserWorkNfts(owner: `0x${string}`): Promise<WorkNFTData
       const tokenOwner = await getTokenOwner(tokenId);
       
       if (tokenOwner && tokenOwner.toLowerCase() === owner.toLowerCase()) {
-        console.log(`[WorkNFT] Found token ${i} owned by user`);
         userTokenIds.push(tokenId);
         
         if (userTokenIds.length >= count) {
@@ -166,8 +149,6 @@ export async function getUserWorkNfts(owner: `0x${string}`): Promise<WorkNFTData
         }
       }
     }
-
-    console.log(`[WorkNFT] Found ${userTokenIds.length} tokens for user:`, userTokenIds.map(id => Number(id)));
 
     const tokenUris = await Promise.all(
       userTokenIds.map((tokenId) => {

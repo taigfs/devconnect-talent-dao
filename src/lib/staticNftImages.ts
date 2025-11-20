@@ -16,7 +16,10 @@ const STATIC_NFT_IMAGES: NftImageConfig[] = [
   { path: '/NFTs/NFT3.jpg', bgColor: '#3D8B7C' }, // Teal/Green
   { path: '/NFTs/NFT4.jpg', bgColor: '#CC7C3A' }, // Orange/Brown
   { path: '/NFTs/NFT5.png', bgColor: '#FF8547' }, // Vibrant Orange
-  { path: '/NFTs/NFT6.png', bgColor: '#4A7C59' }, // Green (if exists)
+  { path: '/NFTs/NFT6.png', bgColor: '#4A7C59' }, // Green
+  { path: '/NFTs/NFT7.png', bgColor: '#F0A020' }, // Yellow/Gold
+  { path: '/NFTs/NFT8.png', bgColor: '#2E6BA8' }, // Blue
+  { path: '/NFTs/NFT9.png', bgColor: '#E8772E' }, // Orange/Red
 ];
 
 /**

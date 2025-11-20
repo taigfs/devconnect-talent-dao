@@ -388,20 +388,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Rate limiting: prevent syncing too frequently
     const now = Date.now();
     if (!force && now - lastSyncTimeRef.current < SYNC_COOLDOWN_MS) {
-      console.log('[Scroll] Skipping sync (cooldown active)');
       return;
     }
     
     lastSyncTimeRef.current = now;
     
     try {
-      console.log('[Scroll] Syncing jobs from blockchain...');
       const onChainJobs = await getAllJobsBasic();
       
-      console.log('[Scroll] Found', onChainJobs.length, 'on-chain jobs:', onChainJobs);
-      
       if (onChainJobs.length === 0) {
-        console.log('[Scroll] No on-chain jobs found');
         toast.info('No jobs on blockchain yet', {
           description: 'Post the first job to get started!'
         });
@@ -445,8 +440,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             : undefined,
         };
       });
-
-      console.log('[Scroll] Mapped jobs:', mappedJobs);
 
       // Replace all jobs with on-chain jobs (no local jobs)
       setState(prev => ({

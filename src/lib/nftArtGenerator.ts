@@ -158,7 +158,6 @@ function generateCategoryIcon(category: JobCategory): string {
 }
 
 export function generateNFTArt(config: NFTArtConfig): string {
-  console.log('[NFTArt] Generating art for:', config);
   const colors = CATEGORY_COLORS[config.category];
   const seed = hashCode(`${config.tokenId}-${config.title}`);
   const background = pickBackground(config.tokenId);
@@ -201,10 +200,8 @@ export function generateNFTArt(config: NFTArtConfig): string {
   
   try {
     const encoded = `data:image/svg+xml;base64,${btoa(svg)}`;
-    console.log('[NFTArt] Successfully generated art, length:', encoded.length);
     return encoded;
   } catch (error) {
-    console.error('[NFTArt] Failed to encode SVG:', error);
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 }

@@ -30,54 +30,34 @@ const MyNFTsContent = () => {
       if (!metadata) return null;
 
       const searchText = `${metadata.name || ''} ${metadata.description || ''}`;
-      console.log('[MyNFTs] Detecting company from text:', searchText);
       const detectedCompanies = detectCompaniesFromText(searchText);
-      console.log('[MyNFTs] Detected companies:', detectedCompanies);
       const company = detectedCompanies[0]?.name || 'Unknown';
 
-      console.log('[MyNFTs] Full metadata:', metadata);
-      console.log('[MyNFTs] Metadata attributes:', metadata.attributes);
-      
-      // Extract category from metadata name (title) using [CATEGORY:XXX] tag
-      const categoryMatch = metadata.name.match(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/i);
-      let extractedCategory = categoryMatch ? categoryMatch[1].toUpperCase() : null;
+      // Extract category from metadata name (title) OR description using [CATEGORY:XXX] tag
+      const nameMatch = metadata.name.match(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/i);
+      const descMatch = metadata.description?.match(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/i);
+      let extractedCategory = nameMatch ? nameMatch[1].toUpperCase() : (descMatch ? descMatch[1].toUpperCase() : null);
       
       // Fallback: try to find category in attributes
       if (!extractedCategory) {
-        metadata.attributes?.forEach((attr, idx) => {
-          console.log(`[MyNFTs] Attribute ${idx}:`, JSON.stringify(attr));
-        });
-        
         const categoryAttr = metadata.attributes?.find((attr) => attr.trait_type === 'Category');
-        console.log('[MyNFTs] Found category attribute:', categoryAttr);
         extractedCategory = categoryAttr ? String(categoryAttr.value).toUpperCase() : null;
       }
       
       const rawCategory = extractedCategory || 'BACKEND';
-      console.log('[MyNFTs] Extracted category:', rawCategory);
-      
       const normalizedCategory = rawCategory.toUpperCase().trim();
-      console.log('[MyNFTs] Normalized category:', normalizedCategory);
       
       type ValidCategory = 'FRONTEND' | 'BACKEND' | 'DESIGN' | 'MARKETING';
       const validCategories: ValidCategory[] = ['FRONTEND', 'BACKEND', 'DESIGN', 'MARKETING'];
       const category: ValidCategory = validCategories.includes(normalizedCategory as ValidCategory) ? (normalizedCategory as ValidCategory) : 'BACKEND';
-      console.log('[MyNFTs] Final category:', category);
 
       // Use static NFT image instead of generated SVG
       const tokenIdNumber = Number(nft.tokenId);
       const imageUrl = getStaticNftImage(tokenIdNumber);
 
-      // Clean title (remove category tag)
+      // Clean title and description (remove category tags)
       const cleanTitle = metadata.name.replace(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/gi, '').trim();
-      
-      console.log('[MyNFTs] NFT processed:', {
-        tokenId: tokenIdNumber,
-        title: cleanTitle,
-        company,
-        category,
-        imageUrl,
-      });
+      const cleanDescription = metadata.description?.replace(/\[CATEGORY:(FRONTEND|BACKEND|DESIGN|MARKETING)\]/gi, '').trim();
 
       return {
         id: tokenIdNumber,
@@ -88,7 +68,7 @@ const MyNFTsContent = () => {
         deliveredAt: new Date().toISOString().split('T')[0],
         tokenId: tokenIdNumber,
         contractAddress: WORK_NFT_ADDRESS,
-        description: metadata.description,
+        description: cleanDescription,
       };
     }).filter(Boolean) as WorkNFT[] || [];
 

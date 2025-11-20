@@ -71,12 +71,9 @@ export function detectCompaniesFromText(text: string): Array<{ tag: string; logo
   const detected: Array<{ tag: string; logo: string; name: string }> = [];
   const seen = new Set<string>();
 
-  console.log('[detectCompanies] Searching in text:', lower);
-
   Object.entries(COMPANY_TAG_TO_NAME).forEach(([tag, companyName]) => {
     if (lower.includes(tag) && !seen.has(companyName)) {
       const logo = COMPANY_LOGOS[companyName];
-      console.log(`[detectCompanies] Found "${tag}" -> ${companyName}, logo:`, logo);
       if (logo) {
         detected.push({ tag, logo, name: companyName });
         seen.add(companyName);
@@ -84,6 +81,5 @@ export function detectCompaniesFromText(text: string): Array<{ tag: string; logo
     }
   });
 
-  console.log('[detectCompanies] Total detected:', detected.length);
   return detected;
 }
