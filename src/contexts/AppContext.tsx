@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { AppTransaction } from '@/types/Transaction';
+import { v4 as uuidv4 } from 'uuid';
 
 export type UserRole = 'worker' | 'requester' | null;
 export type JobStatus = 'OPEN' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED';
@@ -35,12 +37,14 @@ interface AppContextType {
   user: User | null;
   jobs: Job[];
   balance: number;
+  transactions: AppTransaction[];
   connectWallet: (role: UserRole, wallet: string) => void;
-  completeKYC: (data: any) => void;
+  completeKYC: (data: Partial<User>) => void;
   addJob: (job: Omit<Job, 'id' | 'status'>) => void;
   applyForJob: (jobId: number) => void;
   submitWork: (jobId: number, link: string) => void;
   approveWork: (jobId: number) => void;
+  depositWithLemon: (amount: number) => Promise<void>;
   logout: () => void;
   showCompletionAnimation: boolean;
   setShowCompletionAnimation: (show: boolean) => void;
@@ -139,7 +143,8 @@ const getInitialState = () => {
     balances: {
       [DEMO_WORKER_WALLET]: 1234,
       [DEMO_REQUESTER_WALLET]: 7700 // 10000 - 800 - 500 - 1200 + 200 (reserved for open job)
-    }
+    },
+    transactions: []
   };
 };
 
@@ -150,6 +155,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const user = state.currentUser ? state.users[state.currentUser] : null;
   const jobs = state.jobs;
   const balance = user ? (state.balances[user.wallet] || 0) : 0;
+  const transactions = state.transactions || [];
 
   // Save to localStorage whenever state changes
   useEffect(() => {
@@ -169,26 +175,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const connectWallet = (role: UserRole, wallet: string) => {
-    setState(prev => ({
-      ...prev,
-      currentUser: wallet,
-      users: {
-        ...prev.users,
-        [wallet]: {
-          wallet,
-          role,
-          kycCompleted: false,
-          ...(prev.users[wallet] || {})
+    setState(prev => {
+      const existingUser = prev.users[wallet];
+      const shouldResetBalance = !existingUser || existingUser.role !== role;
+      
+      return {
+        ...prev,
+        currentUser: wallet,
+        users: {
+          ...prev.users,
+          [wallet]: {
+            ...(prev.users[wallet] || {}),
+            wallet,
+            role,
+            kycCompleted: true
+          }
+        },
+        balances: {
+          ...prev.balances,
+          [wallet]: shouldResetBalance 
+            ? (role === 'requester' ? 10000 : 0)
+            : prev.balances[wallet]
         }
-      },
-      balances: {
-        ...prev.balances,
-        [wallet]: prev.balances[wallet] || (role === 'requester' ? 10000 : 0)
-      }
-    }));
+      };
+    });
   };
 
-  const completeKYC = (data: any) => {
+  const completeKYC = (data: Partial<User>) => {
     if (!state.currentUser) return;
     
     setState(prev => ({
@@ -202,6 +215,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
     }));
+  };
+
+  const addTransaction = (tx: Omit<AppTransaction, 'id' | 'timestamp'>) => {
+    const transaction: AppTransaction = {
+      ...tx,
+      id: uuidv4(),
+      timestamp: Date.now()
+    };
+
+    setState(prev => ({
+      ...prev,
+      transactions: [transaction, ...(prev.transactions || [])]
+    }));
+
+    console.log('[TRANSACTION REGISTERED]', transaction);
   };
 
   const addJob = (job: Omit<Job, 'id' | 'status'>) => {
@@ -222,10 +250,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         [user.wallet]: prev.balances[user.wallet] - job.reward
       }
     }));
+
+    // Registrar transação
+    addTransaction({
+      user: user.wallet,
+      type: 'job_creation',
+      amount: job.reward,
+      jobId: newJob.id,
+      metadata: { title: job.title }
+    });
   };
 
   const applyForJob = (jobId: number) => {
     if (!user) return;
+    
+    const job = jobs.find(j => j.id === jobId);
     
     setState(prev => ({
       ...prev,
@@ -235,9 +274,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : job
       )
     }));
+
+    // Registrar transação
+    if (job) {
+      addTransaction({
+        user: user.wallet,
+        type: 'job_application',
+        jobId,
+        metadata: { title: job.title }
+      });
+    }
   };
 
   const submitWork = (jobId: number, link: string) => {
+    if (!user) return;
+    
+    const job = jobs.find(j => j.id === jobId);
+    
     setState(prev => ({
       ...prev,
       jobs: prev.jobs.map(job => 
@@ -251,11 +304,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : job
       )
     }));
+
+    // Registrar transação
+    if (job) {
+      addTransaction({
+        user: user.wallet,
+        type: 'job_submission',
+        jobId,
+        metadata: { title: job.title, link }
+      });
+    }
   };
 
   const approveWork = (jobId: number) => {
     const job = jobs.find(j => j.id === jobId);
-    if (!job || !job.applicantWallet) return;
+    if (!job || !job.applicantWallet || !user) return;
+
+    const paymentAmount = job.reward * 0.8;
 
     setState(prev => ({
       ...prev,
@@ -266,11 +331,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ),
       balances: {
         ...prev.balances,
-        [job.applicantWallet]: (prev.balances[job.applicantWallet] || 0) + (job.reward * 0.8)
+        [job.applicantWallet]: (prev.balances[job.applicantWallet] || 0) + paymentAmount
       }
     }));
     
+    // Registrar transação de aprovação (pelo requester)
+    addTransaction({
+      user: user.wallet,
+      type: 'job_approval',
+      jobId,
+      metadata: { title: job.title, worker: job.applicantWallet }
+    });
+
+    // Registrar transação de pagamento (para o worker)
+    addTransaction({
+      user: job.applicantWallet,
+      type: 'payment_release',
+      amount: paymentAmount,
+      jobId,
+      metadata: { title: job.title, reward: job.reward }
+    });
+    
     setShowCompletionAnimation(true);
+  };
+
+  const depositWithLemon = async (amount: number) => {
+    if (!user) {
+      throw new Error('No user connected');
+    }
+
+    if (amount <= 0) {
+      throw new Error('Invalid amount');
+    }
+
+    // MOCK: simula delay da transação
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    console.log('[MOCK] DepositWithLemon', { 
+      wallet: user.wallet, 
+      amount,
+      timestamp: new Date().toISOString()
+    });
+
+    // FUTURO: substituir por chamada real ao Lemon SDK
+    // const result = await depositReal(amount);
+    // if (!result.success) throw new Error('Deposit failed');
+
+    setState(prev => ({
+      ...prev,
+      balances: {
+        ...prev.balances,
+        [user.wallet]: (prev.balances[user.wallet] || 0) + amount
+      }
+    }));
+
+    // Registrar transação
+    addTransaction({
+      user: user.wallet,
+      type: 'deposit',
+      amount
+    });
   };
 
   const logout = () => {
@@ -285,12 +405,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user,
       jobs,
       balance,
+      transactions,
       connectWallet,
       completeKYC,
       addJob,
       applyForJob,
       submitWork,
       approveWork,
+      depositWithLemon,
       logout,
       showCompletionAnimation,
       setShowCompletionAnimation

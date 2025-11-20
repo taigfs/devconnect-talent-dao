@@ -63,11 +63,22 @@ export function useAppWallet() {
       } 
       
       // Fallback: MetaMask (apenas para desenvolvimento local)
-      const ethereum = (window as { ethereum?: { request: (args: { method: string }) => Promise<string[]> } }).ethereum;
+      const ethereum = (window as { ethereum?: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> } }).ethereum;
       if (ethereum) {
+        // Força o MetaMask a mostrar o popup de seleção de conta
+        try {
+          await ethereum.request({
+            method: 'wallet_requestPermissions',
+            params: [{ eth_accounts: {} }],
+          });
+        } catch (permErr) {
+          // Se falhar ao pedir permissões, tenta sem forçar
+          console.log('Fallback para eth_requestAccounts');
+        }
+
         const accounts = await ethereum.request({
           method: 'eth_requestAccounts',
-        });
+        }) as string[];
         
         if (accounts && accounts[0]) {
           setAddress(accounts[0]);

@@ -8,9 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, DollarSign, Copy, Check } from 'lucide-react';
+import { LogOut, DollarSign, Copy, Check, Plus, Receipt } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import DepositModal from '@/components/DepositModal';
+import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 
 interface NavbarProps {
   currentView: 'board' | 'dashboard';
@@ -18,9 +20,11 @@ interface NavbarProps {
 }
 
 const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
-  const { user, logout, balance } = useApp();
+  const { user, logout, balance, depositWithLemon } = useApp();
   const { disconnect } = useAppWallet();
   const [copied, setCopied] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
 
   const handleCopyAddress = async () => {
     if (!user?.wallet) return;
@@ -33,6 +37,10 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
     } catch (err) {
       toast.error('Failed to copy address');
     }
+  };
+
+  const handleDeposit = async (amount: number) => {
+    await depositWithLemon(amount);
   };
 
   const handleLogout = () => {
@@ -55,12 +63,22 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
 
           <div className="flex items-center gap-4">
             {user?.role === 'requester' && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded border border-primary/30">
-                <DollarSign className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-primary">
-                  {balance.toLocaleString()} USDC
-                </span>
-              </div>
+              <>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded border border-primary/30">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-bold text-primary">
+                    {balance.toLocaleString()} USDC
+                  </span>
+                </div>
+                <Button
+                  onClick={() => setShowDepositModal(true)}
+                  size="sm"
+                  className="hidden sm:flex items-center gap-2 bg-primary hover:bg-secondary text-primary-foreground font-semibold"
+                >
+                  <Plus className="w-4 h-4" />
+                  Deposit with Lemon
+                </Button>
+              </>
             )}
             {user && (
               <DropdownMenu>
@@ -99,6 +117,14 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
+                    onClick={() => setShowTransactionHistory(true)}
+                    className="cursor-pointer"
+                  >
+                    <Receipt className="w-4 h-4 mr-2" />
+                    Transaction History
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer text-destructive focus:text-destructive"
                   >
@@ -111,6 +137,23 @@ const Navbar = ({ currentView, onViewChange }: NavbarProps) => {
           </div>
         </div>
       </div>
+
+      {/* Deposit Modal */}
+      {user?.role === 'requester' && (
+        <DepositModal
+          open={showDepositModal}
+          onClose={() => setShowDepositModal(false)}
+          onDeposit={handleDeposit}
+        />
+      )}
+
+      {/* Transaction History Modal */}
+      {user && (
+        <TransactionHistoryModal
+          open={showTransactionHistory}
+          onClose={() => setShowTransactionHistory(false)}
+        />
+      )}
     </nav>
   );
 };

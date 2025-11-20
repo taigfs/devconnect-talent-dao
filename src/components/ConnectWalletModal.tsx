@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Building2, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserRole } from '@/contexts/AppContext';
 import { useAppWallet } from '@/hooks/useAppWallet';
 
@@ -14,6 +14,13 @@ interface ConnectWalletModalProps {
 const ConnectWalletModal = ({ open, onOpenChange, onConnect }: ConnectWalletModalProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>(null);
   const { connect, isConnecting, error, isWebView } = useAppWallet();
+
+  // Reseta o selectedRole quando o modal abrir
+  useEffect(() => {
+    if (open) {
+      setSelectedRole(null);
+    }
+  }, [open]);
 
   const handleConnect = async (role: UserRole) => {
     setSelectedRole(role);

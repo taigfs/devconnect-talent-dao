@@ -13,7 +13,7 @@ import { Toaster } from 'sonner';
 const AppContent = () => {
   const { user, connectWallet, completeKYC, showCompletionAnimation, setShowCompletionAnimation, jobs } = useApp();
   const [currentView, setCurrentView] = useState<'board' | 'dashboard'>('board');
-  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(true);
   
   const isDemoMode = new URLSearchParams(window.location.search).get('demo') === 'true';
 
