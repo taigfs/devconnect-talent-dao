@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Award, Calendar, Building2, Share2 } from 'lucide-react';
 import { WorkNFT, CATEGORY_LOGOS, COMPANY_LOGOS } from '@/types/nft';
 import { getScrollscanAddressUrl } from '@/lib/web3/constants';
+import { getNftBackgroundColor } from '@/lib/staticNftImages';
 
 interface NFTDetailsModalProps {
   nft: WorkNFT | null;
@@ -22,6 +23,9 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
   const categoryLogo = CATEGORY_LOGOS[nft.category];
   const companyLogo = COMPANY_LOGOS[nft.company];
+  
+  // Get background color matching the NFT image
+  const bgColor = nft.tokenId ? getNftBackgroundColor(nft.tokenId) : '#FF8C42';
 
   const formattedDate = new Date(nft.deliveredAt).toLocaleDateString('en-US', {
     day: 'numeric',
@@ -31,7 +35,7 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-primary/20">
+      <DialogContent className="max-w-2xl max-h-[90vh] bg-card border-primary/20 overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
             <Award className="w-6 h-6 text-primary" />
@@ -42,13 +46,16 @@ export const NFTDetailsModal = ({ nft, open, onOpenChange }: NFTDetailsModalProp
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* NFT Image */}
-          <div className="relative w-full h-64 rounded-lg overflow-hidden border border-primary/20">
+        <div className="space-y-6 pb-2">
+          {/* NFT Image - Portrait aspect ratio with matching background */}
+          <div 
+            className="relative w-full aspect-[3/4] max-h-[400px] rounded-lg overflow-hidden border border-primary/20 flex items-center justify-center"
+            style={{ backgroundColor: bgColor }}
+          >
             <img
               src={nft.imageUrl}
               alt={nft.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
 
             {/* Logo Badges */}

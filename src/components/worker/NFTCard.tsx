@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import { WorkNFT, CATEGORY_LOGOS, COMPANY_LOGOS } from '@/types/nft';
+import { getNftBackgroundColor } from '@/lib/staticNftImages';
 
 interface NFTCardProps {
   nft: WorkNFT;
@@ -13,6 +14,9 @@ interface NFTCardProps {
 export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
   const categoryLogo = CATEGORY_LOGOS[nft.category];
   const companyLogo = COMPANY_LOGOS[nft.company];
+  
+  // Get background color matching the NFT image
+  const bgColor = nft.tokenId ? getNftBackgroundColor(nft.tokenId) : '#FF8C42';
 
   // Format date
   const formattedDate = new Date(nft.deliveredAt).toLocaleDateString('en-US', {
@@ -23,22 +27,28 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
 
   return (
     <Card
-      className="group relative overflow-hidden bg-gradient-to-br from-card via-card to-card/50 border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 cursor-pointer"
+      className="group relative overflow-hidden border-primary/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300 cursor-pointer"
       style={{
         animation: `fadeInUp 0.6s ease-out ${index * 0.1}s backwards`,
+        backgroundColor: bgColor,
       }}
       onClick={() => onViewDetails(nft)}
     >
-      {/* Background Image */}
-      <div className="relative w-full h-48 overflow-hidden">
+      {/* NFT Image - Portrait aspect ratio, not stretched */}
+      <div className="relative w-full aspect-[3/4] overflow-hidden flex items-center justify-center">
         <img
           src={nft.imageUrl}
           alt={nft.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
+        {/* Subtle gradient overlay at bottom */}
+        <div 
+          className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+          style={{
+            background: `linear-gradient(to top, ${bgColor}, transparent)`,
+          }}
+        />
 
         {/* Company Logo Badge - Top Right */}
         {companyLogo && (

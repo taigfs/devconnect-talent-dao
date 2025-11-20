@@ -10,6 +10,7 @@ import { AppProvider, useApp } from '@/contexts/AppContext';
 import { useMyWorkNfts } from '@/hooks/useMyWorkNfts';
 import { Link } from 'react-router-dom';
 import { WORK_NFT_ADDRESS } from '@/lib/web3/constants';
+import { getStaticNftImage } from '@/lib/staticNftImages';
 
 const MyNFTsContent = () => {
   const { user } = useApp();
@@ -29,20 +30,53 @@ const MyNFTsContent = () => {
       if (!metadata) return null;
 
       const searchText = `${metadata.name || ''} ${metadata.description || ''}`;
+      console.log('[MyNFTs] Detecting company from text:', searchText);
       const detectedCompanies = detectCompaniesFromText(searchText);
+      console.log('[MyNFTs] Detected companies:', detectedCompanies);
       const company = detectedCompanies[0]?.name || 'Unknown';
 
+      console.log('[MyNFTs] Full metadata:', metadata);
+      console.log('[MyNFTs] Metadata attributes:', metadata.attributes);
+      
+      // Log each attribute to see the exact structure
+      metadata.attributes?.forEach((attr, idx) => {
+        console.log(`[MyNFTs] Attribute ${idx}:`, JSON.stringify(attr));
+      });
+      
       const categoryAttr = metadata.attributes?.find((attr) => attr.trait_type === 'Category');
-      const category = (categoryAttr?.value as string) || 'BACKEND';
+      console.log('[MyNFTs] Found category attribute:', categoryAttr);
+      
+      const rawCategory = (categoryAttr?.value as string) || 'BACKEND';
+      console.log('[MyNFTs] Raw category value:', rawCategory);
+      
+      const normalizedCategory = rawCategory.toUpperCase().trim();
+      console.log('[MyNFTs] Normalized category:', normalizedCategory);
+      
+      type ValidCategory = 'FRONTEND' | 'BACKEND' | 'DESIGN' | 'MARKETING';
+      const validCategories: ValidCategory[] = ['FRONTEND', 'BACKEND', 'DESIGN', 'MARKETING'];
+      const category: ValidCategory = validCategories.includes(normalizedCategory as ValidCategory) ? (normalizedCategory as ValidCategory) : 'BACKEND';
+      console.log('[MyNFTs] Final category:', category);
 
-      return {
-        id: Number(nft.tokenId),
+      // Use static NFT image instead of generated SVG
+      const tokenIdNumber = Number(nft.tokenId);
+      const imageUrl = getStaticNftImage(tokenIdNumber);
+
+      console.log('[MyNFTs] NFT processed:', {
+        tokenId: tokenIdNumber,
         title: metadata.name,
         company,
+        category,
+        imageUrl,
+      });
+
+      return {
+        id: tokenIdNumber,
+        title: metadata.name || `Work Credential #${tokenIdNumber}`,
+        company,
         category: category as WorkNFT['category'],
-        imageUrl: metadata.image || 'https://via.placeholder.com/600x400?text=Work+NFT',
+        imageUrl, // Use static image
         deliveredAt: new Date().toISOString().split('T')[0],
-        tokenId: Number(nft.tokenId),
+        tokenId: tokenIdNumber,
         contractAddress: WORK_NFT_ADDRESS,
         description: metadata.description,
       };

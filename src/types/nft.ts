@@ -21,6 +21,8 @@ export const CATEGORY_LOGOS: Record<JobCategory, string> = {
 
 export const COMPANY_LOGOS: Record<string, string> = {
   Nubank: 'https://logo.clearbit.com/nubank.com.br',
+  'C6 Bank': 'https://logo.clearbit.com/c6bank.com.br',
+  'Itaú': 'https://logo.clearbit.com/itau.com.br',
   'MercadoLibre': 'https://logo.clearbit.com/mercadolibre.com',
   Rappi: 'https://logo.clearbit.com/rappi.com',
   Globant: 'https://logo.clearbit.com/globant.com',
@@ -38,6 +40,13 @@ export const COMPANY_LOGOS: Record<string, string> = {
  */
 const COMPANY_TAG_TO_NAME: Record<string, string> = {
   'nubank': 'Nubank',
+  'c6 bank': 'C6 Bank',
+  'c6bank': 'C6 Bank',
+  'c6': 'C6 Bank',
+  'itau': 'Itaú',
+  'itaú': 'Itaú',
+  'itaã': 'Itaú',
+  'itaãº': 'Itaú',
   'mercadolibre': 'MercadoLibre',
   'mercado libre': 'MercadoLibre',
   'rappi': 'Rappi',
@@ -62,9 +71,12 @@ export function detectCompaniesFromText(text: string): Array<{ tag: string; logo
   const detected: Array<{ tag: string; logo: string; name: string }> = [];
   const seen = new Set<string>();
 
+  console.log('[detectCompanies] Searching in text:', lower);
+
   Object.entries(COMPANY_TAG_TO_NAME).forEach(([tag, companyName]) => {
     if (lower.includes(tag) && !seen.has(companyName)) {
       const logo = COMPANY_LOGOS[companyName];
+      console.log(`[detectCompanies] Found "${tag}" -> ${companyName}, logo:`, logo);
       if (logo) {
         detected.push({ tag, logo, name: companyName });
         seen.add(companyName);
@@ -72,5 +84,6 @@ export function detectCompaniesFromText(text: string): Array<{ tag: string; logo
     }
   });
 
+  console.log('[detectCompanies] Total detected:', detected.length);
   return detected;
 }
