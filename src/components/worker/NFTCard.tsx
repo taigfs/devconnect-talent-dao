@@ -76,7 +76,7 @@ export const NFTCard = ({ nft, onViewDetails, index }: NFTCardProps) => {
       {/* Content */}
       <CardContent className="p-4 space-y-2">
         {/* Title */}
-        <h3 className="font-semibold text-lg text-white line-clamp-1 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-lg text-white line-clamp-1">
           {nft.title}
         </h3>
 

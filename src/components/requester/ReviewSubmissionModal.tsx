@@ -267,10 +267,11 @@ const ReviewSubmissionModal = ({ job, open, onClose }: ReviewSubmissionModalProp
                   
                   <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg border border-border/50">
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">Social Programs</span>
+                      <span className="text-sm font-medium mr-1">Social Programs</span>
+                      <span className="text-base">🥰</span>
                       <p className="text-xs text-muted-foreground">20% platform fee</p>
                     </div>
-                    <span className="font-bold text-muted-foreground">{(job.reward * 0.2).toFixed(8)} WETH</span>
+                    <span className="font-bold">{(job.reward * 0.2).toFixed(8)} WETH</span>
                   </div>
                   
                   <div className="h-px bg-border my-2" />
